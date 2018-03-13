@@ -10,6 +10,7 @@ while True:
     userInput = input("what would you like to do? ")
     splitUserInput = userInput.split()
     cmd = splitUserInput[0]
+
     if (len(userInput) == 0):
         print("Error Code")
     if (cmd == 'ls'):
