@@ -16,4 +16,3 @@ while True:
         inputToClient = "Command Recieved was: " + client.recv(MAX_BYTE).decode()
         byteinputToClient = inputToClient.encode()
         client.send(byteinputToClient)
-
