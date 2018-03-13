@@ -35,6 +35,8 @@ def parseCommand(cmd):
     server_logout()
   elif cmd == "open" or cmd == "vim" or cmd == "edit":
     server_edit(cmd[1])
+  elif cmd == "mkdir":
+    server_mkdir(cmd[1])
 
 def server_ls():
   print("To be implemented")
@@ -52,5 +54,8 @@ def server_logout():
   print("To be implemented")
 
 def server_open(filename):
+  print("To be implemented")
+
+def server_mkdir(directory):
   print("To be implemented")
 
