@@ -3,7 +3,7 @@ import sys
 from serverFunctions import parseCommand
 
 MAX_BYTE = 1024
-s = socket.socket()
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 if len(sys.argv) < 2:
   print("usage: python server.py [portnumber]")
