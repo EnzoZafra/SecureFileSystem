@@ -10,6 +10,7 @@ s.connect((host, port))
 def signIn(userName ,passWord):
     print(userName)
     print(passWord)
+
     feedBackfromServer = True
     #sned username to server
     #send password to server to validate
@@ -37,8 +38,6 @@ def signIn(userName ,passWord):
         s.send(newPass)
         print(s.recv(MAX_BYTE))
     #after sending the new user/pass server sends ack
-
-
 
 
 print("Connected to :", host)
