@@ -3,7 +3,7 @@ import socket
 s = socket.socket()
 host = socket.gethostname()
 port = 1337
-
+MAX_BYTE = 1024
 s.connect((host, port))
 print("Connected to :", host)
 while True:
@@ -17,18 +17,18 @@ while True:
         byteUserInput = stringToSend.encode()
         s.send(byteUserInput)
         print("Response from server ...")
-        print(s.recv(1024))
+        print(s.recv(MAX_BYTE))
     if (cmd == "cd"):
         filename = splitUserInput[1]
         stringToSend = "cd|" + filename
         byteUserInput = stringToSend.encode()
         s.send(byteUserInput)
         print("Response from server ...")
-        print(s.recv(1024))
+        print(s.recv(MAX_BYTE))
     if (cmd == "mkdir"):
         filename = splitUserInput[1]
         stringToSend = "mkdir|" + filename
         byteUserInput = stringToSend.encode()
         s.send(byteUserInput)
         print("Response from server ...")
-        print(s.recv(1024))
+        print(s.recv(MAX_BYTE))

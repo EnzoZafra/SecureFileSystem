@@ -1,5 +1,5 @@
 import socket
-
+MAX_BYTE = 1024
 s = socket.socket()
 host = socket.gethostname()
 port = 1337
@@ -13,7 +13,7 @@ while True:
         print( "connected from", address )
     else:
         print(" Response from Client")
-        inputToClient = "Command Recieved was: " + client.recv(1024).decode()
+        inputToClient = "Command Recieved was: " + client.recv(MAX_BYTE).decode()
         byteinputToClient = inputToClient.encode()
         client.send(byteinputToClient)
 
