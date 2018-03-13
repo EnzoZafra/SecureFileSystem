@@ -10,6 +10,8 @@ s.connect((host, port))
 def signIn(userName ,passWord):
     print(userName)
     print(passWord)
+
+    feedBackfromServer = True
     #sned username to server
     #send password to server to validate
     userName = userName.encode()
@@ -19,21 +21,23 @@ def signIn(userName ,passWord):
     s.send(passWord)
     print(s.recv(MAX_BYTE))
     #if true then connection is accepted
-    #server sends ack and ends the function and proceed to the
-    #else prompt user to register
-    print("User was not found please register")
-    newUser = input("Please input a new username: ")
-    newPass = input("Please input a new password: ")
-    print(newUser)
-    print(newPass)
-    newUser = newUser.encode()
-    newPass = newPass.encode()
-    s.send(newUser)
-    print(s.recv(MAX_BYTE))
-    s.send(newPass)
-    print(s.recv(MAX_BYTE))
+    if feedBackfromServer == True:
+        print("userfound")
+        #server sends ack and ends the function and proceed to the
+        #else prompt user to register
+    else:
+        print("User was not found please register")
+        newUser = input("Please input a new username: ")
+        newPass = input("Please input a new password: ")
+        print(newUser)
+        print(newPass)
+        newUser = newUser.encode()
+        newPass = newPass.encode()
+        s.send(newUser)
+        print(s.recv(MAX_BYTE))
+        s.send(newPass)
+        print(s.recv(MAX_BYTE))
     #after sending the new user/pass server sends ack
-
 
 
 print("Connected to :", host)
