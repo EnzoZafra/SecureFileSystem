@@ -1,10 +1,22 @@
 import socket
+import sys
+from serverFunctions import parseCommand
+
 MAX_BYTE = 1024
 s = socket.socket()
-host = socket.gethostname()
-port = 1337
+
+if len(sys.argv) < 2:
+  print("usage: python server.py [portnumber]")
+
+host = ''
+port = int(sys.argv[1])
+if port > 49151 or port < 1024:
+  print("error: portnumber must be an integer between 1024-49151")
+  exit()
+
 s.bind((host, port))
 s.listen(5)
+
 client = None
 while True:
     if client is None:
@@ -18,44 +30,4 @@ while True:
         parseCommand(cmd)
         byteinputToClient = inputToClient.encode()
         client.send(byteinputToClient)
-
-def parseCommand(cmd):
-  splitCmd = cmd.split("|")
-  cmd = cmd[0]
-
-  if cmd == "ls":
-    server_ls()
-  elif cmd == "cd":
-    server_cd(cmd[1])
-  elif cmd == "mv" or cmd == "move":
-    server_mv(cmd[1])
-  elif cmd == "cat":
-    server_cat(cmd[1])
-  elif cmd == "logout":
-    server_logout()
-  elif cmd == "open" or cmd == "vim" or cmd == "edit":
-    server_edit(cmd[1])
-  elif cmd == "mkdir":
-    server_mkdir(cmd[1])
-
-def server_ls():
-  print("To be implemented")
-
-def server_cd(directory):
-  print("To be implemented")
-
-def server_mv(destination):
-  print("To be implemented")
-
-def server_cat(filename):
-  print("To be implemented")
-
-def server_logout():
-  print("To be implemented")
-
-def server_open(filename):
-  print("To be implemented")
-
-def server_mkdir(directory):
-  print("To be implemented")
 

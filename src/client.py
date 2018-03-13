@@ -1,7 +1,7 @@
 import socket
 
 s = socket.socket()
-host = socket.gethostname()
+host = "localhost"
 port = 1337
 MAX_BYTE = 1024
 s.connect((host, port))
