@@ -69,10 +69,8 @@ while True:
     parseCommand(cmd, filename)
   else:
     filename = splitUserInput[1]
-    print(filename)
     toSend = parseCommand(cmd, filename)
-    print(toSend)
-    #server.send(toSend)
+    server.send(toSend)
     print("Response from server ...")
     print(server.recv(MAX_BYTE))
 
