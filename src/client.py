@@ -1,11 +1,9 @@
 import socket
 import sys
 from clientFunctions import parseCommand
-from clientFunctions import client_cd
+
 MAX_BYTE = 1024
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-host = "localhost"
 
 def signIn(userName ,passWord):
   print(userName)
@@ -50,6 +48,7 @@ print(sys.argv[1])
 print(sys.argv[2])
 
 #host = sys.argv[1]
+host = "localhost"
 port = int(sys.argv[2])
 
 if port > 49151 or port < 1024:
@@ -76,6 +75,9 @@ while True:
     #server.send(toSend)
     print("Response from server ...")
     print(server.recv(MAX_BYTE))
+
+
+
 
 
 
