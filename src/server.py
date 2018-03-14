@@ -7,6 +7,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 if len(sys.argv) < 2:
   print("usage: python server.py [portnumber]")
+  exit()
 
 host = ''
 port = int(sys.argv[1])
