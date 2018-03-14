@@ -65,6 +65,7 @@ while True:
   splitUserInput = userInput.split()
   cmd = splitUserInput[0]
   if cmd == "ls":
+    #TODO: give user input
     filename = "NONE"
     parseCommand(cmd, filename)
   else:
