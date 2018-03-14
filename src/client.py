@@ -1,6 +1,7 @@
 import socket
 import sys
 from clientFunctions import parseCommand
+from clientFunctions import client_cd
 MAX_BYTE = 1024
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

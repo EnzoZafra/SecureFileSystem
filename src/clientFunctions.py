@@ -6,14 +6,14 @@ def parseCommand(cmd,filename):
     client_cd(filename)
   elif (cmd == "mkdir"):
     client_mkdir(filename)
-  elif (cmd == "mv"):
-    client_mkdir()
+  elif (cmd == "mv" or cmd == "move"):
+    client_mv(filename)
   elif (cmd == "cat"):
     client_cat()
   elif (cmd == "logout"):
     client_logout()
-  elif (cmd == "open"):
-    client_open()
+  elif (cmd == "open" or cmd == "vim" or cmd == "edit"):
+    client_open(filename)
 
 def client_ls():
   print("inside client_ls")
@@ -38,16 +38,25 @@ def client_mkdir(filename):
   print(byteUserInput)
   return byteUserInput
 
-def client_mv():
- print("inside client_mv")
+def client_mv(filename):
+  print("inside client_mv")
+  stringToSend = "mv|" + filename
+  byteUserInput = stringToSend.encode()
+  print(byteUserInput)
+  return byteUserInput
 
 def client_cat():
  print("inside client_cat")
 
 def client_logout():
- print("inside client_logout")
+  print("inside client_logout")
+  stringToSend = "logout|"
+  byteUserInput = stringToSend.encode()
+  return byteUserInput
 
-def client_open():
- print("inside client_open")
-
+def client_open(filename):
+  print("inside client_open")
+  stringToSend = "open|" + filename
+  byteUserInput = stringToSend.encode()
+  return byteUserInput
 
