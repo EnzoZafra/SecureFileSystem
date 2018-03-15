@@ -1,7 +1,6 @@
 import socket
 import sys
 from clientFunctions import parseCommand
-from clientFunctions import error_code
 
 ERR_ACK = 1
 MAX_BYTE = 1024
@@ -51,27 +50,16 @@ if port > 49151 or port < 1024:
   exit()
 
 server.connect((host, port))
+
+#TODO: no signin yet
 signIn()
 
 while True:
-  userInput = raw_input("what would you like to do? ")
+  userInput = raw_input("> ")
   toSend = parseCommand(userInput)
-  #   #TODO: give user input
-  #   filename = "NONE"
-  # else:
-  #   filename = splitUserInput[1]
   server.send(toSend)
-  print("Response from server ...")
+
   serverResponse = server.recv(MAX_BYTE).decode()
-  print(serverResponse)
+
   if(serverResponse != "ACK"):
-    error_code(ERR_ACK)
-  else:
-    print("ACK recieved")
-
-
-
-
-
-
-
+    print(serverResponse)

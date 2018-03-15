@@ -1,81 +1,78 @@
-
 def parseCommand(userInput):
 
   splitUserInput = userInput.split()
   cmd = splitUserInput[0]
-  toSend = ""
-  UserInputLength = (len(splitUserInput))
+  if len(splitUserInput) == 1:
+    splitUserInput.append('')
 
-  if(UserInputLength == 1):
-    if (cmd == "ls"):
-      toSend = client_ls()
-    elif (cmd == "logout"):
-      toSend = client_logout()
-    elif (cmd == "pwd"):
-      toSend = client_pwd()
-  else:
-    if (cmd == "cd"):
-      filename = splitUserInput[1]
-      toSend = client_cd(filename)
-    elif (cmd == "mkdir"):
-      filename = splitUserInput[1]
-      toSend = client_mkdir(filename)
-    elif (cmd == "mv" or cmd == "move"):
-      filename = splitUserInput[1]
-      toSend = client_mv(filename)
-    elif (cmd == "cat"):
-      filename = splitUserInput[1]
-      toSend = client_cat(filename)
-    elif (cmd == "open" or cmd == "vim" or cmd == "edit"):
-      filename = splitUserInput[1]
-      toSend = client_open(filename)
+  toSend = ""
+
+  if (cmd == "logout"):
+    toSend = client_logout()
+  elif (cmd == "pwd"):
+    toSend = client_pwd()
+  elif (cmd == "cd"):
+    filename = splitUserInput[1]
+    toSend = client_cd(filename)
+  elif (cmd == "mkdir"):
+    filename = splitUserInput[1]
+    toSend = client_mkdir(filename)
+  elif (cmd == "mv" or cmd == "move"):
+    source = splitUserInput[1]
+    dest = splitUserInput[2]
+    toSend = client_mv(source, dest)
+  elif (cmd == "cat"):
+    toSend = client_cat()
+  elif (cmd == "open" or cmd == "vim" or cmd == "edit"):
+    filename = splitUserInput[1]
+    toSend = client_open(filename)
+  elif (cmd == "ls"):
+    toSend = client_ls(splitUserInput[1])
+
   byteToSend = toSend.encode()
   return byteToSend
 
 
-def client_ls():
-  print("inside client_ls")
-  stringToSend = "ls|"
+def client_ls(path):
+  # print("inside client_ls")
+  stringToSend = "ls|" + path
   return stringToSend
 
 def client_cd(filename):
-  print("insdie client_cd")
-  print(filename)
   stringToSend = "cd|" + filename
   return stringToSend
 
-
 def client_mkdir(filename):
-  print("inside client_mkdir")
+  # print("inside client_mkdir")
   stringToSend = "mkdir|" + filename
   return stringToSend
 
-def client_mv(filename):
-  print("inside client_mv")
-  stringToSend = "mv|" + filename
+def client_mv(source, dest):
+  # print("inside client_mv")
+  stringToSend = "mv|" + source + " " + dest
   return stringToSend
 
 def client_cat(filename):
- print("inside client_cat")
- stringToSend = "logout|" + filename
- return stringToSend
-
+ # print("inside client_cat")
+  stringToSend = "cat|" + filename
+  return stringToSend
 
 def client_logout():
-  print("inside client_logout")
+  # print("inside client_logout")
   stringToSend = "logout|"
   return stringToSend
 
 def client_open(filename):
-  print("inside client_open")
+  # print("inside client_open")
   stringToSend = "open|" + filename
   return stringToSend
 
 def client_pwd():
-  print("inside client_pwd")
+  # print("inside client_pwd")
   stringToSend = "pwd|"
   return stringToSend
 
 def error_code(errorValue):
   if (errorValue == 1):
-    print("ACK not received")
+    #TODO
+    print("some error")
