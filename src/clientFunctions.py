@@ -13,8 +13,6 @@ def parseCommand(userInput):
       toSend = client_logout()
     elif (cmd == "pwd"):
       toSend = client_pwd()
-    elif (cmd == "cd.."):
-      toSend = client_cd_back()
   else:
     if (cmd == "cd"):
       filename = splitUserInput[1]
@@ -73,11 +71,6 @@ def client_pwd():
   print("inside client_pwd")
   stringToSend = "pwd|"
   return stringToSend
-
-def client_cd_back():
-  print("inside client_cd_back")
-  stringToSend =  "cd..|"
-  return  stringToSend
 
 def error_code(errorValue):
   if (errorValue == 1):
