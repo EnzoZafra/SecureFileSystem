@@ -31,11 +31,13 @@ def parseCommand(cmd):
 def server_ls():
   #TODO
   list = os.listdir(vars.currentdir)
+  print(vars.currentdir)
   # for testing
   return '%s' % ' '.join(map(str, list))
 
 def server_cd(directory):
   #TODO
+  vars.previousdir = vars.currentdir
   vars.currentdir = directory
   return "ACK"
 
@@ -71,5 +73,6 @@ def server_pwd():
   return vars.currentdir
 
 def server_cd_back():
+  vars.currentdir = vars.previousdir
   print("To be implemented")
   return "ACK"

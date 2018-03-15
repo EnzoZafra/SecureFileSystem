@@ -70,6 +70,7 @@ while True:
   server.send(toSend)
   print("Response from server ...")
   serverResponse = server.recv(MAX_BYTE).decode()
+  print(serverResponse)
   if(serverResponse != "ACK"):
     error_code(ERR_ACK)
   else:
