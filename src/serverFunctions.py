@@ -124,3 +124,45 @@ def sendFile(socket, filename):
     socket.send(l)
     l = f.read(1024)
   f.close()
+
+def verify(userId):
+  splitUserID = userId.split(" ")
+  passpath = vars.realpath + "/rootdir/etc/passwd"
+  userExist  = "F"
+  with open(passpath) as fp:
+    mylist = fp.read().splitlines()
+    for line in mylist:
+      splitLine = line.split(" ")
+      if(splitUserID[0] == splitLine[0]):
+        if(splitUserID[1] == splitLine[1]):
+          userExist = "T"
+          return userExist
+        else:
+          return userExist
+  fp.close()
+  return userExist
+
+
+def createUser(userId):
+  splitUserID = userId.split(" ")
+  passpath = vars.realpath + "/rootdir/etc/passwd"
+  file = open(passpath,"a")
+  file.write("\n" + userId)
+  file.close()
+  userDir = ROOT_DIR +"/" + splitUserID[0]
+  print("the user dir is " + userDir)
+  os.makedirs(userDir)
+
+
+def userNameTaken(userID):
+  splitUserID = userID.split(" ")
+  passpath = vars.realpath + "/rootdir/etc/passwd"
+  userExist  = "F"
+  with open(passpath) as fp:
+    mylist = fp.read().splitlines()
+    for line in mylist:
+      splitLine = line.split(" ")
+      if(splitUserID[0] == splitLine[0]):
+        userExist = "T"
+  fp.close()
+  return userExist
