@@ -14,6 +14,8 @@ def signIn():
   while True:
     userInput = raw_input("what would you like to do? [1]: signin [2]: register  : ")
     if(userInput == "1"):
+      request = "signIn"
+      server.send(request.encode())
       userName = raw_input("Please input a username: ")
       passWord = raw_input("Please input a password: ")
       check_id = userName + " " + passWord
@@ -24,10 +26,10 @@ def signIn():
       else:
         print("Username does not exist")
     elif(userInput == "2"):
-      print("Registering")
+      request = "createUser"
+      server.send(request.encode())
       userName = raw_input("Please input a new Username: ")
       passWord = raw_input("Please input a new Password: ")
-      #check if Username already exists
       check_id = userName + " " + passWord
       server.send(check_id.encode())
       userExist = server.recv(MAX_BYTE).decode()

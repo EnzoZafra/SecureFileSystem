@@ -5,6 +5,7 @@ import vars
 from serverFunctions import parseCommand
 from serverFunctions import init
 from serverFunctions import verify
+from serverFunctions import userNameTaken
 from serverFunctions import createUser
 
 # define constants
@@ -37,14 +38,24 @@ while True:
         print( "connected from", address )
 
         while True:
-          userId = client.recv(MAX_BYTE).decode()
-          doesUserExist = verify(userId)
-          if(doesUserExist == "T"):
-            client.send(doesUserExist.encode())
-            break;
-          else:
-            client.send("F".encode())
-            continue
+          request = client.recv(MAX_BYTE).decode()
+          if(request == "signIn"):
+            userId = client.recv(MAX_BYTE).decode()
+            doesUserExist = verify(userId)
+            if(doesUserExist == "T"):
+              client.send(doesUserExist.encode())
+              break
+            else:
+              client.send("F".encode())
+          if(request == "createUser"):
+            userId = client.recv(MAX_BYTE).decode()
+            doesUserExist = userNameTaken(userId)
+            if(doesUserExist == "T"):
+              client.send(doesUserExist.encode())
+            else:
+              client.send("F".encode())
+              userId = client.recv(MAX_BYTE).decode()
+              createUser(userId)
     else:
         cmd = client.recv(MAX_BYTE).decode()
         response = parseCommand(cmd)

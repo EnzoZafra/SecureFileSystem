@@ -111,11 +111,26 @@ def verify(userId):
           return userExist
         else:
           return userExist
+  fp.close()
   return userExist
 
 
 def createUser(userId):
   splitUserID = userId.split(" ")
-  #passdir = os.getcwd() + "/etc"
-  #os.chdir(passdir)
-  print("the username that the userinput is : "+ splitUserID[0])
+  passpath = vars.realpath + "/rootdir/etc/passwd"
+  file = open(passpath,"a")
+  file.write("\n" + userId)
+  file.close()
+
+def userNameTaken(userID):
+  splitUserID = userID.split(" ")
+  passpath = vars.realpath + "/rootdir/etc/passwd"
+  userExist  = "F"
+  with open(passpath) as fp:
+    mylist = fp.read().splitlines()
+    for line in mylist:
+      splitLine = line.split(" ")
+      if(splitUserID[0] == splitLine[0]):
+        userExist = "T"
+  fp.close()
+  return userExist
