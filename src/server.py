@@ -3,20 +3,14 @@ import os
 import sys
 import vars
 from serverFunctions import parseCommand
-from serverFunctions import server_cd
+from serverFunctions import init
 
 # define constants
 MAX_BYTE = 1024
-ROOT_DIR = "rootdir"
 
 # initialize global vars
 vars.init()
-# initialize directory for the file system
-if(not os.path.isdir(ROOT_DIR)):
-  os.makedirs(ROOT_DIR)
-else:
-  server_cd(ROOT_DIR)
-
+init()
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

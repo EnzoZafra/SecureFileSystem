@@ -1,6 +1,8 @@
 import vars
 import os
 
+ROOT_DIR = "rootdir"
+
 def parseCommand(cmd):
   splitCmd = cmd.split("|")
   cmd = splitCmd[0]
@@ -71,3 +73,13 @@ def server_pwd():
   #TODO
   return vars.currentdir
 
+
+def init():
+  etcdir = ROOT_DIR + "/etc"
+  if(not os.path.isdir(etcdir)):
+    os.makedirs(etcdir)
+
+  if not os.path.exists(etcdir + "/passwd"):
+    with open(etcdir + "/passwd", 'w'): pass
+
+  server_cd(ROOT_DIR)
