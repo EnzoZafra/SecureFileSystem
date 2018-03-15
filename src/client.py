@@ -9,10 +9,13 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # nonblocking I/O
 # server.setblocking(0)
 
+
+
+
 def signIn(userName ,passWord):
   print(userName)
   print(passWord)
-
+  print()
   feedBackfromServer = True
   #sned username to server
   #send password to server to validate

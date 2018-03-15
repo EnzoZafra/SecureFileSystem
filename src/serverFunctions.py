@@ -24,8 +24,6 @@ def parseCommand(cmd):
     response = server_mkdir(splitCmd[1])
   elif cmd == "pwd":
     response = server_pwd()
-  elif cmd == "cd..":
-    response = server_cd_back()
   return response
 
 def server_ls():
@@ -38,6 +36,8 @@ def server_ls():
 def server_cd(directory):
   #TODO
   vars.currentdir = vars.currentdir + "/" + directory
+  os.chdir(vars.currentdir)
+  vars.currentdir = os.getcwd()
   return "ACK"
 
 def server_mv(destination):
@@ -71,7 +71,3 @@ def server_pwd():
   #TODO
   return vars.currentdir
 
-def server_cd_back():
-  vars.currentdir = vars.previousdir
-  print("To be implemented")
-  return "ACK"
