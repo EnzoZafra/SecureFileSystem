@@ -1,13 +1,16 @@
 import socket
 import sys
+import os
 from clientFunctions import parseCommand
+from clientFunctions import init
+from clientFunctions import acceptFile
 
-ERR_ACK = 1
 MAX_BYTE = 1024
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # nonblocking I/O
 # server.setblocking(0)
 
+init()
 
 def signIn():
   userExist = False
@@ -63,5 +66,15 @@ while True:
 
   serverResponse = server.recv(MAX_BYTE).decode()
 
-  if(serverResponse != "ACK"):
-    print(serverResponse)
+  if (serverResponse != "ACK"):
+    if (serverResponse == "READY_SEND"):
+      acknowledge = "CLIENT_READY".encode()
+      server.send(acknowledge)
+      filepath = acceptFile(server)
+      serverResponse = server.recv(MAX_BYTE).decode()
+      os.system('vi ' + filepath)
+    elif (serverResponse == "READY_EDIT"):
+      serverResponse = server.recv(MAX_BYTE).decode()
+      os.system('vi tmpcache/tmp')
+    else:
+      print(serverResponse)

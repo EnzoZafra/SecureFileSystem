@@ -29,13 +29,14 @@ s.listen(5)
 
 client = None
 while True:
-    if client is None:
-        print("Still connecting")
-        client, address = s.accept()
-        print( "connected from", address )
-    else:
-        cmd = client.recv(MAX_BYTE).decode()
-        response = parseCommand(cmd)
-        if (response is not ""):
-          byteinputToClient = response.encode()
-          client.send(response)
+  if client is None:
+    print("Still connecting")
+    client, address = s.accept()
+    print( "connected from", address )
+  else:
+    print("BUSY WAITING")
+    cmd = client.recv(MAX_BYTE).decode()
+    response = parseCommand(cmd, client)
+    if (response is not ""):
+      byteinputToClient = response.encode()
+      client.send(response)

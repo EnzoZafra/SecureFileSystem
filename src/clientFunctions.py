@@ -1,3 +1,5 @@
+import os
+
 def parseCommand(userInput):
 
   splitUserInput = userInput.split()
@@ -22,16 +24,19 @@ def parseCommand(userInput):
     dest = splitUserInput[2]
     toSend = client_mv(source, dest)
   elif (cmd == "cat"):
-    toSend = client_cat()
+    toSend = client_cat(splitUserInput[1])
   elif (cmd == "open" or cmd == "vim" or cmd == "edit"):
     filename = splitUserInput[1]
     toSend = client_open(filename)
   elif (cmd == "ls"):
     toSend = client_ls(splitUserInput[1])
+  elif (cmd == "chmod"):
+    #TODO add chmod params
+    params = "lol test"
+    toSend = client_chmod(params)
 
   byteToSend = toSend.encode()
   return byteToSend
-
 
 def client_ls(path):
   # print("inside client_ls")
@@ -72,7 +77,29 @@ def client_pwd():
   stringToSend = "pwd|"
   return stringToSend
 
+def client_chmod(params):
+  stringToSend = "chmod|" + params
+  return stringToSend
+
 def error_code(errorValue):
   if (errorValue == 1):
     #TODO
     print("some error")
+
+def init():
+  clientpath = "tmpcache/"
+  if not os.path.isdir(clientpath):
+    os.makedirs(clientpath)
+
+def acceptFile(socket):
+  #TODO decryption
+  filename = "tmpcache/tmp"
+  with open(filename, 'wb') as f:
+    while True:
+      data = socket.recv(1024)
+      if not data:
+        break
+      # write data to a file
+      f.write(data)
+  f.close()
+  return filename
