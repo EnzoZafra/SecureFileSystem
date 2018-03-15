@@ -83,3 +83,26 @@ def init():
     with open(etcdir + "/passwd", 'w'): pass
 
   server_cd(ROOT_DIR)
+
+def verify(userId):
+  splitUserID = userId.split(" ")
+  passpath = vars.realpath + "/rootdir/etc/passwd"
+  userExist  = "F"
+  with open(passpath) as fp:
+    mylist = fp.read().splitlines()
+    for line in mylist:
+      splitLine = line.split(" ")
+      if(splitUserID[0] == splitLine[0]):
+        if(splitUserID[1] == splitLine[1]):
+          userExist = "T"
+          return userExist
+        else:
+          return userExist
+  return userExist
+
+
+def createUser(userId):
+  splitUserID = userId.split(" ")
+  #passdir = os.getcwd() + "/etc"
+  #os.chdir(passdir)
+  print("the username that the userinput is : "+ splitUserID[0])

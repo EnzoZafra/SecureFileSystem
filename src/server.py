@@ -4,6 +4,8 @@ import sys
 import vars
 from serverFunctions import parseCommand
 from serverFunctions import init
+from serverFunctions import verify
+from serverFunctions import createUser
 
 # define constants
 MAX_BYTE = 1024
@@ -33,6 +35,16 @@ while True:
         print("Still connecting")
         client, address = s.accept()
         print( "connected from", address )
+
+        while True:
+          userId = client.recv(MAX_BYTE).decode()
+          doesUserExist = verify(userId)
+          if(doesUserExist == "T"):
+            client.send(doesUserExist.encode())
+            break;
+          else:
+            client.send("F".encode())
+            continue
     else:
         cmd = client.recv(MAX_BYTE).decode()
         response = parseCommand(cmd)

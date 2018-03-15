@@ -24,7 +24,8 @@ def parseCommand(userInput):
       filename = splitUserInput[1]
       toSend = client_mv(filename)
     elif (cmd == "cat"):
-      toSend = client_cat()
+      filename = splitUserInput[1]
+      toSend = client_cat(filename)
     elif (cmd == "open" or cmd == "vim" or cmd == "edit"):
       filename = splitUserInput[1]
       toSend = client_open(filename)
@@ -54,8 +55,11 @@ def client_mv(filename):
   stringToSend = "mv|" + filename
   return stringToSend
 
-def client_cat():
+def client_cat(filename):
  print("inside client_cat")
+ stringToSend = "logout|" + filename
+ return stringToSend
+
 
 def client_logout():
   print("inside client_logout")

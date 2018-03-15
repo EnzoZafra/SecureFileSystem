@@ -17,12 +17,10 @@ def signIn():
     if(userInput == "1"):
       userName = raw_input("Please input a username: ")
       passWord = raw_input("Please input a password: ")
-      #check if UserName exisit
       check_id = userName + " " + passWord
       server.send(check_id.encode())
-      #userExist = server.recv(MAX_BYTE).decode()
-
-      if(userExist == True):
+      userExist = server.recv(MAX_BYTE).decode()
+      if(userExist == "T"):
         return True
       else:
         print("Username does not exist")
@@ -33,12 +31,12 @@ def signIn():
       #check if Username already exists
       check_id = userName + " " + passWord
       server.send(check_id.encode())
-     # userExist = server.recv(MAX_BYTE).decode()
-      if(userExist == True):
+      userExist = server.recv(MAX_BYTE).decode()
+      if(userExist == "T"):
         print("Username already taken")
       else:
         print("Creating new user")
-       # server.send(check_id.encode())
+        server.send(check_id.encode())
         return True
 
 if len(sys.argv) < 3:
