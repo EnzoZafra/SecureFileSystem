@@ -10,42 +10,36 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # server.setblocking(0)
 
 
+def signIn():
+  userExist = False
+  while True:
+    userInput = raw_input("what would you like to do? [1]: signin [2]: register  : ")
+    if(userInput == "1"):
+      userName = raw_input("Please input a username: ")
+      passWord = raw_input("Please input a password: ")
+      #check if UserName exisit
+      check_id = userName + " " + passWord
+      server.send(check_id.encode())
+      #userExist = server.recv(MAX_BYTE).decode()
 
-
-def signIn(userName ,passWord):
-  print(userName)
-  print(passWord)
-  print()
-  feedBackfromServer = True
-  #sned username to server
-  #send password to server to validate
-  userName = userName.encode()
-  passWord = passWord.encode()
-  server.send(userName)
-  print(server.recv(MAX_BYTE))
-  server.send(passWord)
-  print(server.recv(MAX_BYTE))
-  #if true then connection is accepted
-  if feedBackfromServer == True:
-    print("userfound")
-        #server sends ack and ends the function and proceed to the
-        #else prompt user to register
-  else:
-    print("User was not found please register")
-    newUser = input("Please input a new username: ")
-    newPass = input("Please input a new password: ")
-    print(newUser)
-    print(newPass)
-    newUser = newUser.encode()
-    newPass = newPass.encode()
-    server.send(newUser)
-    print(server.recv(MAX_BYTE))
-    server.send(newPass)
-    print(server.recv(MAX_BYTE))
-    #after sending the new user/pass server sends ack
-
-
-
+      if(userExist == True):
+        return True
+      else:
+        print("Username does not exist")
+    elif(userInput == "2"):
+      print("Registering")
+      userName = raw_input("Please input a new Username: ")
+      passWord = raw_input("Please input a new Password: ")
+      #check if Username already exists
+      check_id = userName + " " + passWord
+      server.send(check_id.encode())
+     # userExist = server.recv(MAX_BYTE).decode()
+      if(userExist == True):
+        print("Username already taken")
+      else:
+        print("Creating new user")
+       # server.send(check_id.encode())
+        return True
 
 if len(sys.argv) < 3:
   print("usage: python client.py [host] [portnumber]")
@@ -59,9 +53,7 @@ if port > 49151 or port < 1024:
   exit()
 
 server.connect((host, port))
-userName = raw_input("Input a Username ")
-passWord = raw_input("Input a Password ")
-#signIn(userName,passWord)
+signIn()
 
 while True:
   userInput = raw_input("what would you like to do? ")
