@@ -38,6 +38,8 @@ def server_ls():
 def server_cd(directory):
   #TODO
   vars.currentdir = vars.currentdir + "/" + directory
+  os.chdir(vars.currentdir)
+  vars.currentdir = os.getcwd()
   return "ACK"
 
 def server_mv(destination):
