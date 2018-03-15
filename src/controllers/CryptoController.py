@@ -1,7 +1,7 @@
 import Crypto
 from Crypto.PublicKey import RSA
 from Crypto import Random
-from Crypto.Hash import MD5
+from Crypto.Hash import SHA224
 
 #TODO: Use something other than RSA?
 
@@ -17,7 +17,7 @@ class CryptoController:
     return keypair.publickey()
 
   def calculateHash(self, message):
-    return MD5.new(message).digest()
+    return SHA224.new(message).digest()
 
   def addSignature(self, keypair, hash):
     return keypair.sign(hash, '')
@@ -29,7 +29,7 @@ class CryptoController:
     return keypair.decrypt(ciphertext)
 
   def validateSignature(self, decrypted, pubkey, signature):
-    recalcHash = MD5.new(decrypted).digest()
+    recalcHash = SHA224.new(decrypted).digest()
 
     if(pubkey.verify(recalcHash, signature)):
       return True

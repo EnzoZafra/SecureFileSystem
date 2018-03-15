@@ -14,6 +14,9 @@ def parseCommand(cmd,filename):
     toSend = client_logout()
   elif (cmd == "open" or cmd == "vim" or cmd == "edit"):
     toSend = client_open(filename)
+  elif(cmd == "pwd"):
+    toSend = client_pwd()
+
   byteToSend = toSend.encode()
   return byteToSend
 
@@ -51,5 +54,10 @@ def client_logout():
 def client_open(filename):
   print("inside client_open")
   stringToSend = "open|" + filename
+  return stringToSend
+
+def client_pwd():
+  print("inside client_pwd")
+  stringToSend = "pwd|"
   return stringToSend
 

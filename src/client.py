@@ -68,13 +68,13 @@ while True:
   if cmd == "ls":
     #TODO: give user input
     filename = "NONE"
-    parseCommand(cmd, filename)
   else:
     filename = splitUserInput[1]
-    toSend = parseCommand(cmd, filename)
-    server.send(toSend)
-    print("Response from server ...")
-    print(server.recv(MAX_BYTE))
+
+  toSend = parseCommand(cmd, filename)
+  server.send(toSend)
+  print("Response from server ...")
+  print(server.recv(MAX_BYTE))
 
 
 

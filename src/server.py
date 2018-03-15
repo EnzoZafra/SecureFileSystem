@@ -1,8 +1,24 @@
 import socket
+import os
 import sys
+import vars
 from serverFunctions import parseCommand
+from serverFunctions import server_cd
 
+# define constants
 MAX_BYTE = 1024
+ROOT_DIR = "rootdir"
+
+# initialize global vars
+vars.init()
+
+# initialize directory for the file system
+if(not os.path.isdir(ROOT_DIR)):
+  os.makedirs(ROOT_DIR)
+else:
+  # os.chdir(ROOT_DIR)
+  server_cd(ROOT_DIR)
+
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 if len(sys.argv) < 2:
@@ -25,7 +41,6 @@ while True:
         client, address = s.accept()
         print( "connected from", address )
     else:
-        print(" Response from Client")
         cmd = client.recv(MAX_BYTE).decode()
         inputToClient = "Command Recieved was: " + cmd
         parseCommand(cmd)
