@@ -1,7 +1,9 @@
 import socket
 import sys
 from clientFunctions import parseCommand
+from clientFunctions import error_code
 
+ERR_ACK = 1
 MAX_BYTE = 1024
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # nonblocking I/O
@@ -77,9 +79,13 @@ while True:
   # toSend = parseCommand(cmd, filename)
   server.send(toSend)
   print("Response from server ...")
-  print(server.recv(MAX_BYTE))
-
   #TODO:
+  serverResponse = server.recv(MAX_BYTE).decode()
+  if(serverResponse != "ACK"):
+    error_code(ERR_ACK)
+  else:
+    print("ACK recieved")
+
   # check for "ACK" or something returned, if not error happened,
 
 

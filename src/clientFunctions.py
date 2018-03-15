@@ -69,3 +69,7 @@ def client_pwd():
   stringToSend = "pwd|"
   return stringToSend
 
+
+def error_code(value):
+  if (value == 1):
+    print("ACK not received")
