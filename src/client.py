@@ -63,15 +63,16 @@ passWord = raw_input("Input a Password ")
 
 while True:
   userInput = raw_input("what would you like to do? ")
-  splitUserInput = userInput.split()
-  cmd = splitUserInput[0]
-  if cmd == "ls":
-    #TODO: give user input
-    filename = "NONE"
-  else:
-    filename = splitUserInput[1]
+  toSend = parseCommand(userInput)
+  # splitUserInput = userInput.split()
+  # cmd = splitUserInput[0]
+  # if cmd == "ls":
+  #   #TODO: give user input
+  #   filename = "NONE"
+  # else:
+  #   filename = splitUserInput[1]
 
-  toSend = parseCommand(cmd, filename)
+  # toSend = parseCommand(cmd, filename)
   server.send(toSend)
   print("Response from server ...")
   print(server.recv(MAX_BYTE))

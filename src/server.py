@@ -42,8 +42,7 @@ while True:
         print( "connected from", address )
     else:
         cmd = client.recv(MAX_BYTE).decode()
-        inputToClient = "Command Recieved was: " + cmd
-        parseCommand(cmd)
-        byteinputToClient = inputToClient.encode()
-        client.send(byteinputToClient)
-
+        response = parseCommand(cmd)
+        if (response is not ""):
+          byteinputToClient = response.encode()
+          client.send(response)

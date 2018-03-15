@@ -1,18 +1,26 @@
-def parseCommand(cmd,filename):
-  toSend =""
+def parseCommand(userInput):
+
+  splitUserInput = userInput.split()
+  cmd = splitUserInput[0]
+  toSend = ""
+
   if (cmd == "ls"):
     toSend = client_ls()
   elif (cmd == "cd"):
+    filename = splitUserInput[1]
     toSend = client_cd(filename)
   elif (cmd == "mkdir"):
+    filename = splitUserInput[1]
     toSend = client_mkdir(filename)
   elif (cmd == "mv" or cmd == "move"):
+    filename = splitUserInput[1]
     toSend = client_mv(filename)
   elif (cmd == "cat"):
     toSend = client_cat()
   elif (cmd == "logout"):
     toSend = client_logout()
   elif (cmd == "open" or cmd == "vim" or cmd == "edit"):
+    filename = splitUserInput[1]
     toSend = client_open(filename)
   elif(cmd == "pwd"):
     toSend = client_pwd()

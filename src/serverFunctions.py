@@ -9,55 +9,60 @@ def parseCommand(cmd):
   print("The command: " + cmd)
 
   if cmd == "ls":
-    server_ls()
+    response = server_ls()
   elif cmd == "cd":
-    server_cd(cmd[1])
+    response = server_cd(cmd[1])
   elif cmd == "mv" or cmd == "move":
-    server_mv(cmd[1])
+    response = server_mv(cmd[1])
   elif cmd == "cat":
-    server_cat(cmd[1])
+    response = server_cat(cmd[1])
   elif cmd == "logout":
-    server_logout()
+    response = server_logout()
   elif cmd == "open" or cmd == "vim" or cmd == "edit":
-    server_edit(cmd[1])
+    response = server_edit(cmd[1])
   elif cmd == "mkdir":
-    server_mkdir(cmd[1])
+    response = server_mkdir(cmd[1])
   elif cmd == "pwd":
-    server_pwd()
+    response = server_pwd()
+
+  return response
 
 def server_ls():
   #TODO
   list = os.listdir(vars.currentdir)
   # for testing
-  print('%s' % ' '.join(map(str, list)))
-  print("To be implemented")
+  return '%s' % ' '.join(map(str, list))
 
 def server_cd(directory):
   #TODO
   vars.currentdir = directory
+  return ""
 
 def server_mv(destination):
   #TODO
   print("To be implemented")
+  return ""
 
 def server_cat(filename):
   #TODO
   print("To be implemented")
+  return ""
 
 def server_logout():
   #TODO
   print("To be implemented")
+  return ""
 
 def server_open(filename):
   #TODO
   print("To be implemented")
+  return ""
 
 def server_mkdir(directory):
   #TODO
   print("To be implemented")
+  return ""
 
 def server_pwd():
   #TODO
-  print(vars.currentdir)
-
-
+  return vars.currentdir
