@@ -7,15 +7,12 @@ def parseCommand(cmd):
   splitCmd = cmd.split("|")
   cmd = splitCmd[0]
 
-  # test
-  print("The command: " + cmd)
-
   if cmd == "ls":
-    response = server_ls()
+    response = server_ls(splitCmd[1])
   elif cmd == "cd":
     response = server_cd(splitCmd[1])
   elif cmd == "mv" or cmd == "move":
-    response = server_mv(splitCmd[1])
+    response = server_mv(splitCmd[1], splitCmd[2])
   elif cmd == "cat":
     response = server_cat(splitCmd[1])
   elif cmd == "logout":
@@ -28,21 +25,23 @@ def parseCommand(cmd):
     response = server_pwd()
   return response
 
-def server_ls():
-  #TODO
-  list = os.listdir(vars.currentdir)
-  print(vars.currentdir)
-  # for testing
+def server_ls(path):
+  #TODO encryption
+  if path == '':
+    path = os.getcwd()
+  list = os.listdir(path)
+
+  if len(list) == 0:
+    return ' '
+
   return '%s' % ' '.join(map(str, list))
 
 def server_cd(directory):
-  #TODO
-  vars.currentdir = vars.currentdir + "/" + directory
-  os.chdir(vars.currentdir)
-  vars.currentdir = os.getcwd()
+  #TODO encryption
+  os.chdir(directory)
   return "ACK"
 
-def server_mv(destination):
+def server_mv(source, dest):
   #TODO
   print("To be implemented")
   return "ACK"
@@ -63,15 +62,14 @@ def server_open(filename):
   return "ACK"
 
 def server_mkdir(directory):
-  #TODO
-  combined_dir = vars.currentdir + "/" + directory
-  # print(combined_dir)
-  os.makedirs(combined_dir)
+  #TODO encryption
+  os.makedirs(directory)
   return "ACK"
 
 def server_pwd():
-  #TODO
-  return vars.currentdir
+  #TODO encryption
+  workingdir = os.getcwd()
+  return workingdir.replace(vars.realpath, '')
 
 
 def init():
