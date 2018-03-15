@@ -15,7 +15,7 @@ vars.init()
 if(not os.path.isdir(ROOT_DIR)):
   os.makedirs(ROOT_DIR)
 else:
-  os.chdir(ROOT_DIR)
+  server_cd(ROOT_DIR)
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
