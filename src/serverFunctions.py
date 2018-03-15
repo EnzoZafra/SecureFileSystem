@@ -11,7 +11,7 @@ def parseCommand(cmd):
   if cmd == "ls":
     response = server_ls()
   elif cmd == "cd":
-    response = server_cd(splitsplitCmd[1])
+    response = server_cd(splitCmd[1])
   elif cmd == "mv" or cmd == "move":
     response = server_mv(splitCmd[1])
   elif cmd == "cat":
