@@ -11,17 +11,17 @@ def parseCommand(cmd):
   if cmd == "ls":
     response = server_ls()
   elif cmd == "cd":
-    response = server_cd(cmd[1])
+    response = server_cd(splitsplitCmd[1])
   elif cmd == "mv" or cmd == "move":
-    response = server_mv(cmd[1])
+    response = server_mv(splitCmd[1])
   elif cmd == "cat":
-    response = server_cat(cmd[1])
+    response = server_cat(splitCmd[1])
   elif cmd == "logout":
     response = server_logout()
   elif cmd == "open" or cmd == "vim" or cmd == "edit":
-    response = server_edit(cmd[1])
+    response = server_edit(splitCmd[1])
   elif cmd == "mkdir":
-    response = server_mkdir(cmd[1])
+    response = server_mkdir(splitCmd[1])
   elif cmd == "pwd":
     response = server_pwd()
 
@@ -36,32 +36,34 @@ def server_ls():
 def server_cd(directory):
   #TODO
   vars.currentdir = directory
-  return ""
+  return "ACK"
 
 def server_mv(destination):
   #TODO
   print("To be implemented")
-  return ""
+  return "ACK"
 
 def server_cat(filename):
   #TODO
   print("To be implemented")
-  return ""
+  return "ACK"
 
 def server_logout():
   #TODO
   print("To be implemented")
-  return ""
+  return "ACK"
 
 def server_open(filename):
   #TODO
   print("To be implemented")
-  return ""
+  return "ACK"
 
 def server_mkdir(directory):
   #TODO
-  print("To be implemented")
-  return ""
+  combined_dir = vars.currentdir + "/" + directory
+  # print(combined_dir)
+  os.makedirs(combined_dir)
+  return "ACK"
 
 def server_pwd():
   #TODO

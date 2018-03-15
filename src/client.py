@@ -4,6 +4,8 @@ from clientFunctions import parseCommand
 
 MAX_BYTE = 1024
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# nonblocking I/O
+# server.setblocking(0)
 
 def signIn(userName ,passWord):
   print(userName)
@@ -76,6 +78,9 @@ while True:
   server.send(toSend)
   print("Response from server ...")
   print(server.recv(MAX_BYTE))
+
+  #TODO:
+  # check for "ACK" or something returned, if not error happened,
 
 
 
