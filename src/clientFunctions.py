@@ -1,30 +1,35 @@
+
 def parseCommand(userInput):
 
   splitUserInput = userInput.split()
   cmd = splitUserInput[0]
   toSend = ""
+  UserInputLength = (len(splitUserInput))
 
-  if (cmd == "ls"):
-    toSend = client_ls()
-  elif (cmd == "cd"):
-    filename = splitUserInput[1]
-    toSend = client_cd(filename)
-  elif (cmd == "mkdir"):
-    filename = splitUserInput[1]
-    toSend = client_mkdir(filename)
-  elif (cmd == "mv" or cmd == "move"):
-    filename = splitUserInput[1]
-    toSend = client_mv(filename)
-  elif (cmd == "cat"):
-    toSend = client_cat()
-  elif (cmd == "logout"):
-    toSend = client_logout()
-  elif (cmd == "open" or cmd == "vim" or cmd == "edit"):
-    filename = splitUserInput[1]
-    toSend = client_open(filename)
-  elif(cmd == "pwd"):
-    toSend = client_pwd()
-
+  if(UserInputLength == 1):
+    if (cmd == "ls"):
+      toSend = client_ls()
+    elif (cmd == "logout"):
+      toSend = client_logout()
+    elif (cmd == "pwd"):
+      toSend = client_pwd()
+    elif (cmd == "cd.."):
+      toSend = client_cd_back()
+  else:
+    if (cmd == "cd"):
+      filename = splitUserInput[1]
+      toSend = client_cd(filename)
+    elif (cmd == "mkdir"):
+      filename = splitUserInput[1]
+      toSend = client_mkdir(filename)
+    elif (cmd == "mv" or cmd == "move"):
+      filename = splitUserInput[1]
+      toSend = client_mv(filename)
+    elif (cmd == "cat"):
+      toSend = client_cat()
+    elif (cmd == "open" or cmd == "vim" or cmd == "edit"):
+      filename = splitUserInput[1]
+      toSend = client_open(filename)
   byteToSend = toSend.encode()
   return byteToSend
 
@@ -69,3 +74,11 @@ def client_pwd():
   stringToSend = "pwd|"
   return stringToSend
 
+def client_cd_back():
+  print("inside client_cd_back")
+  stringToSend =  "cd..|"
+  return  stringToSend
+
+def error_code(errorValue):
+  if (errorValue == 1):
+    print("ACK not received")
