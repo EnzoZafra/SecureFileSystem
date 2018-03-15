@@ -35,7 +35,7 @@ def server_ls():
 
 def server_cd(directory):
   #TODO
-  vars.currentdir = directory
+  vars.currentdir = vars.currentdir + "/" + directory
   return "ACK"
 
 def server_mv(destination):
