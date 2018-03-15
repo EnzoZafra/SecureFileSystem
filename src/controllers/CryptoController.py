@@ -5,9 +5,10 @@ from Crypto.Hash import SHA224
 
 #TODO: Use something other than RSA?
 
+KEYSIZE = 1024
 class CryptoController:
-  def __init__(self, keysize):
-    self.keysize = keysize
+  def __init__(self):
+    self.keysize = KEYSIZE
 
   def genAsymKeys(self):
     random = Random.new().read
@@ -36,7 +37,7 @@ class CryptoController:
     return False
 
 
-cryptography = CryptoController(1024)
+cryptography = CryptoController()
 
 # Generate RSA private/public key pairs for both parties...
 keypair_snowden = cryptography.genAsymKeys()

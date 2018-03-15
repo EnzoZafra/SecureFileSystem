@@ -1,12 +1,14 @@
 import socket
 import sys
 from clientFunctions import parseCommand
-
+import sys
+from controllers.CryptoController import *
 ERR_ACK = 1
 MAX_BYTE = 1024
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # nonblocking I/O
 # server.setblocking(0)
+cryptography = CryptoController()
 
 
 def signIn():
@@ -18,6 +20,8 @@ def signIn():
       server.send(request.encode())
       userName = raw_input("Please input a username: ")
       passWord = raw_input("Please input a password: ")
+      passHash = cryptography.calculateHash(passWord)
+      print(passHash)
       check_id = userName + " " + passWord
       server.send(check_id.encode())
       userExist = server.recv(MAX_BYTE).decode()
@@ -30,6 +34,7 @@ def signIn():
       server.send(request.encode())
       userName = raw_input("Please input a new Username: ")
       passWord = raw_input("Please input a new Password: ")
+      print()
       check_id = userName + " " + passWord
       server.send(check_id.encode())
       userExist = server.recv(MAX_BYTE).decode()
