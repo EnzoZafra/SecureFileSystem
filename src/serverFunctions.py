@@ -1,5 +1,6 @@
 import vars
 import os
+import shutil
 
 ROOT_DIR = "rootdir"
 
@@ -12,7 +13,8 @@ def parseCommand(cmd):
   elif cmd == "cd":
     response = server_cd(splitCmd[1])
   elif cmd == "mv" or cmd == "move":
-    response = server_mv(splitCmd[1], splitCmd[2])
+    param = splitCmd[1].split()
+    response = server_mv(param[0], param[1])
   elif cmd == "cat":
     response = server_cat(splitCmd[1])
   elif cmd == "logout":
@@ -42,8 +44,21 @@ def server_cd(directory):
   return "ACK"
 
 def server_mv(source, dest):
-  #TODO
-  print("To be implemented")
+  #TODO encryption
+
+  if source[0] == '/':
+    sourcepath = vars.realpath + "/rootdir" + source
+  else:
+    sourcepath = os.getcwd() + "/" + source
+
+  if dest[0] == '/':
+    destpath = vars.realpath + "/rootdir" + dest
+  else:
+    destpath = os.getcwd() + "/" + dest
+
+  print(sourcepath)
+  print(destpath)
+  shutil.move(sourcepath, destpath)
   return "ACK"
 
 def server_cat(filename):

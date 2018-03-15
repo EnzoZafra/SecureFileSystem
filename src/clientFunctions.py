@@ -18,8 +18,9 @@ def parseCommand(userInput):
     filename = splitUserInput[1]
     toSend = client_mkdir(filename)
   elif (cmd == "mv" or cmd == "move"):
-    filename = splitUserInput[1]
-    toSend = client_mv(filename)
+    source = splitUserInput[1]
+    dest = splitUserInput[2]
+    toSend = client_mv(source, dest)
   elif (cmd == "cat"):
     toSend = client_cat()
   elif (cmd == "open" or cmd == "vim" or cmd == "edit"):
@@ -46,9 +47,9 @@ def client_mkdir(filename):
   stringToSend = "mkdir|" + filename
   return stringToSend
 
-def client_mv(filename):
+def client_mv(source, dest):
   # print("inside client_mv")
-  stringToSend = "mv|" + filename
+  stringToSend = "mv|" + source + " " + dest
   return stringToSend
 
 def client_cat(filename):
