@@ -15,6 +15,8 @@ def parseCommand(userInput):
   elif (cmd == "mv" or cmd == "move"):
     filename = splitUserInput[1]
     toSend = client_mv(filename)
+  elif (cmd == "cd.."):
+    toSend = client_cd_back()
   elif (cmd == "cat"):
     toSend = client_cat()
   elif (cmd == "logout"):
@@ -69,7 +71,11 @@ def client_pwd():
   stringToSend = "pwd|"
   return stringToSend
 
+def client_cd_back():
+  print("inside client_cd_back")
+  stringToSend =  "cd..|"
+  return  stringToSend
 
-def error_code(value):
-  if (value == 1):
+def error_code(errorValue):
+  if (errorValue == 1):
     print("ACK not received")

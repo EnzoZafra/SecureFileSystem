@@ -19,12 +19,13 @@ def parseCommand(cmd):
   elif cmd == "logout":
     response = server_logout()
   elif cmd == "open" or cmd == "vim" or cmd == "edit":
-    response = server_edit(splitCmd[1])
+    response = server_open(splitCmd[1])
   elif cmd == "mkdir":
     response = server_mkdir(splitCmd[1])
   elif cmd == "pwd":
     response = server_pwd()
-
+  elif cmd == "cd..":
+    response = server_cd_back()
   return response
 
 def server_ls():
@@ -68,3 +69,7 @@ def server_mkdir(directory):
 def server_pwd():
   #TODO
   return vars.currentdir
+
+def server_cd_back():
+  print("To be implemented")
+  return "ACK"

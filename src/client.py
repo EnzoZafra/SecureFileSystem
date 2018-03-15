@@ -48,12 +48,7 @@ if len(sys.argv) < 3:
   print("usage: python client.py [host] [portnumber]")
   exit()
 
-print(sys.argv[0])
-print(sys.argv[1])
-print(sys.argv[2])
-
 host = sys.argv[1]
-# host = "localhost"
 port = int(sys.argv[2])
 
 if port > 49151 or port < 1024:
@@ -68,25 +63,17 @@ passWord = raw_input("Input a Password ")
 while True:
   userInput = raw_input("what would you like to do? ")
   toSend = parseCommand(userInput)
-  # splitUserInput = userInput.split()
-  # cmd = splitUserInput[0]
-  # if cmd == "ls":
   #   #TODO: give user input
   #   filename = "NONE"
   # else:
   #   filename = splitUserInput[1]
-
-  # toSend = parseCommand(cmd, filename)
   server.send(toSend)
   print("Response from server ...")
-  #TODO:
   serverResponse = server.recv(MAX_BYTE).decode()
   if(serverResponse != "ACK"):
     error_code(ERR_ACK)
   else:
     print("ACK recieved")
-
-  # check for "ACK" or something returned, if not error happened,
 
 
 
