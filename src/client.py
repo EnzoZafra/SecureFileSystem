@@ -24,7 +24,7 @@ def signIn():
       if(userExist == "T"):
         return True
       else:
-        print("Username does not exist")
+        print("Username or Password Incorrect")
     elif(userInput == "2"):
       request = "createUser"
       server.send(request.encode())

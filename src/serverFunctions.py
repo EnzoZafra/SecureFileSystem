@@ -121,6 +121,10 @@ def createUser(userId):
   file = open(passpath,"a")
   file.write("\n" + userId)
   file.close()
+  userDir = ROOT_DIR +"/" + splitUserID[0]
+  print("the user dir is " + userDir)
+  os.makedirs(userDir)
+
 
 def userNameTaken(userID):
   splitUserID = userID.split(" ")
