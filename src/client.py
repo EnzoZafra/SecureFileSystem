@@ -77,12 +77,14 @@ class Client:
               filepath = acceptFile(self.sock)
               serverResponse = receive(self.sock)
               subprocess.Popen("vi " + filepath, shell=True).wait()
+              #TODO: send file back and then delete from client
 
             elif (serverResponse == "READY_EDIT"):
               serverResponse = receive(self.sock)
               realpath = os.path.dirname(os.path.realpath(__file__))
               cachepath = realpath + "/tmpcache/tmp"
               subprocess.Popen("vi " + cachepath, shell=True).wait()
+              #TODO: send file back and then delete from client
 
             else:
               print(serverResponse)
