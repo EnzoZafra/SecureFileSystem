@@ -4,7 +4,7 @@ import shutil
 
 ROOT_DIR = "rootdir"
 
-def parseCommand(cmd, scontroller, acceptor):
+def parseCommand(cmd, server, acceptor):
   splitCmd = cmd.split("|")
   cmd = splitCmd[0]
   response= ""
@@ -29,9 +29,9 @@ def parseCommand(cmd, scontroller, acceptor):
     elif cmd == "cat":
       response = server_cat(splitCmd[1])
     elif cmd == "open" or cmd == "vim" or cmd == "edit":
-      response = server_open(splitCmd[1], scontroller, acceptor)
+      response = server_open(splitCmd[1], server.scontroller, acceptor)
     elif cmd == "logout":
-      response = server_logout()
+      response = server_logout(server, acceptor)
     elif cmd == "chmod":
       #TODO add params
       response = server_chmod()
@@ -84,10 +84,11 @@ def server_pwd():
   workingdir = os.getcwd()
   return workingdir.replace(vars.realpath, '')
 
-def server_logout():
-  #TODO
-  print("To be implemented")
-  return "ACK"
+def server_logout(server, acceptor):
+  server.sockets.remove(acceptor)
+  vars.loggedin = False
+  server_cd(vars.realpath + "/" + ROOT_DIR)
+  return "LOGOUT"
 
 def server_open(filename, scontroller, acceptor):
   if not os.path.exists(filename):

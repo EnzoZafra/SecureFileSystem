@@ -57,7 +57,7 @@ class Server:
       # event from sockets
         else:
           cmd = self.scontroller.receive(s)
-          response = parseCommand(cmd, self.scontroller, s)
+          response = parseCommand(cmd, self, s)
           if (response is not ""):
             self.scontroller.send(s, response)
 

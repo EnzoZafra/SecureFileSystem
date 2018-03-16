@@ -49,7 +49,6 @@ def parseCommand(userInput):
   return byteToSend
 
 def client_ls(path):
-  # print("inside client_ls")
   stringToSend = "ls|" + path
   return stringToSend
 
@@ -58,32 +57,26 @@ def client_cd(filename):
   return stringToSend
 
 def client_mkdir(filename):
-  # print("inside client_mkdir")
   stringToSend = "mkdir|" + filename
   return stringToSend
 
 def client_mv(source, dest):
-  # print("inside client_mv")
   stringToSend = "mv|" + source + " " + dest
   return stringToSend
 
 def client_cat(filename):
- # print("inside client_cat")
   stringToSend = "cat|" + filename
   return stringToSend
 
 def client_logout():
-  # print("inside client_logout")
   stringToSend = "logout|"
   return stringToSend
 
 def client_open(filename):
-  # print("inside client_open")
   stringToSend = "open|" + filename
   return stringToSend
 
 def client_pwd():
-  # print("inside client_pwd")
   stringToSend = "pwd|"
   return stringToSend
 

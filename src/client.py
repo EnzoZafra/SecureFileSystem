@@ -22,68 +22,72 @@ class Client:
     self.sock = self.scontroller.connClient(self.host, self.port)
 
   def signIn(self):
-    while True:
-      userInput = raw_input("what would you like to do? [1]: signin [2]: register : ")
-      username = raw_input("Please input a username: ")
-      password = raw_input("Please input a password: ")
-      # passHash = cryptography.calculateHash(password)
-      # print(passHash)
-      check_id = username + " " + password
-      if (userInput == "1"):
-        request = "login"
-        self.scontroller.send(self.sock, request + "|" + check_id)
-        verified = self.scontroller.receive(self.sock)
-        if(verified == "LOGIN_SUCCESS"):
-          self.username = username
-          self.prompt = '[' + '@'.join((self.username, socket.gethostname().split('.')[0])) + ']> '
-          return True
-        else:
-          print("username or password incorrect")
-      elif (userInput == "2"):
-        request = "register"
-        self.scontroller.send(self.sock, request + "|" + check_id)
-        verified = self.scontroller.receive(self.sock)
-        if verified == "REG_FAIL":
-          print("Username already taken")
+    userInput = raw_input("what would you like to do? [1]: signin [2]: register : ")
+    username = raw_input("Please input a username: ")
+    password = raw_input("Please input a password: ")
+    # passHash = cryptography.calculateHash(password)
+    # print(passHash)
+    check_id = username + " " + password
+    if (userInput == "1"):
+      request = "login"
+      self.scontroller.send(self.sock, request + "|" + check_id)
+      verified = self.scontroller.receive(self.sock)
+      if(verified == "LOGIN_SUCCESS"):
+        self.username = username
+        self.prompt = '[' + '@'.join((self.username, socket.gethostname().split('.')[0])) + ']> '
+        return True
+      else:
+        print("username or password incorrect")
+    elif (userInput == "2"):
+      request = "register"
+      self.scontroller.send(self.sock, request + "|" + check_id)
+      verified = self.scontroller.receive(self.sock)
+      if verified == "REG_FAIL":
+        print("Username already taken")
 
   def loop(self):
     inputs = [0, self.sock]
+    while True:
+      signedIn = False
+      while not signedIn:
+        signedIn = self.signIn()
+      while signedIn:
+        sys.stdout.write(self.prompt)
+        sys.stdout.flush()
 
-    signedIn = self.signIn()
-    while signedIn:
-      sys.stdout.write(self.prompt)
-      sys.stdout.flush()
+        inEvent, outEvent, exceptEvent = select.select(inputs, [], [])
+        for event in inEvent:
 
-      inEvent, outEvent, exceptEvent = select.select(inputs, [], [])
-      for event in inEvent:
+          if event == 0:
+            userInput = sys.stdin.readline().strip()
+            toSend = parseCommand(userInput)
+            if toSend is None:
+              continue
+            self.scontroller.send(self.sock, toSend)
 
-        if event == 0:
-          userInput = sys.stdin.readline().strip()
-          toSend = parseCommand(userInput)
-          if toSend is None:
-            continue
-          self.scontroller.send(self.sock, toSend)
+          elif event == self.sock:
+            serverResponse = self.scontroller.receive(self.sock)
 
-        elif event == self.sock:
-          serverResponse = self.scontroller.receive(self.sock)
+            if (serverResponse != "ACK"):
+              if (serverResponse == "READY_SEND"):
+                self.scontroller.send(self.sock, "CLIENT_READY")
+                filepath = acceptFile(self.sock)
+                serverResponse = self.scontroller.receive(self.sock)
+                subprocess.Popen("vi " + filepath, shell=True).wait()
+                #TODO: send file back and then delete from client
 
-          if (serverResponse != "ACK"):
-            if (serverResponse == "READY_SEND"):
-              self.scontroller.send(self.sock, "CLIENT_READY")
-              filepath = acceptFile(self.sock)
-              serverResponse = self.scontroller.receive(self.sock)
-              subprocess.Popen("vi " + filepath, shell=True).wait()
-              #TODO: send file back and then delete from client
+              elif (serverResponse == "READY_EDIT"):
+                serverResponse = self.scontroller.receive(self.sock)
+                realpath = os.path.dirname(os.path.realpath(__file__))
+                cachepath = realpath + "/tmpcache/tmp"
+                subprocess.Popen("vi " + cachepath, shell=True).wait()
+                #TODO: send file back and then delete from client
 
-            elif (serverResponse == "READY_EDIT"):
-              serverResponse = self.scontroller.receive(self.sock)
-              realpath = os.path.dirname(os.path.realpath(__file__))
-              cachepath = realpath + "/tmpcache/tmp"
-              subprocess.Popen("vi " + cachepath, shell=True).wait()
-              #TODO: send file back and then delete from client
+              elif (serverResponse == "LOGOUT"):
+                signedIn = False
 
-            else:
-              print(serverResponse)
+              else:
+                print(serverResponse)
 
 if __name__ == "__main__":
   if len(sys.argv) < 3:
