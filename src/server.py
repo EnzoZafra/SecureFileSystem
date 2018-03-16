@@ -4,25 +4,19 @@ import socket
 import os
 import sys
 import vars
-from communication import send, receive
-
-from serverFunctions import parseCommand
-from serverFunctions import init
-from serverFunctions import verify
-from serverFunctions import userNameTaken
-from serverFunctions import createUser
+from serverFunctions import parseCommand, init
 from controllers.SocketController import *
+
 # define constants
 MAX_BYTE = 1024
 
 class Server:
   def __init__(self, host, port):
-    self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.host = host
     self.port = port
     self.sockets = []
-    self.server.bind((host, port))
-    self.server.listen(5)
+    self.scontroller = SocketController()
+    self.server = self.scontroller.connServer(self.host, self.port)
     vars.init()
     init()
     # Trap keyboard interrupts
@@ -31,8 +25,8 @@ class Server:
   def sighandler(self, signum, frame):
     # Close the server
     print 'Shutting down server...'
-    #TODO
-    # # Close existing client sockets
+
+    # Close existing client sockets
     for socket in self.sockets:
         socket.close()
     self.server.close()
@@ -62,10 +56,10 @@ class Server:
 
       # event from sockets
         else:
-          cmd = receive(s)
-          response = parseCommand(cmd, s)
+          cmd = self.scontroller.receive(s)
+          response = parseCommand(cmd, self.scontroller, s)
           if (response is not ""):
-            send(s, response)
+            self.scontroller.send(s, response)
 
     self.server.close()
 

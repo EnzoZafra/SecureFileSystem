@@ -1,5 +1,4 @@
 import os
-from communication import send, receive
 
 def parseCommand(userInput):
 
@@ -102,11 +101,11 @@ def init():
   if not os.path.isdir(clientpath):
     os.makedirs(clientpath)
 
-def acceptFile(socket):
+def acceptFile(receiver):
   #TODO decryption
   filename = "tmpcache/tmp"
   with open(filename, 'wb') as f:
-    data = receive(socket)
+    data = receiver.scontroller.receive(receiver.sock)
     f.write(data)
   f.close()
   return filename

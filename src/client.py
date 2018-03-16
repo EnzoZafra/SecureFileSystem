@@ -5,10 +5,7 @@ import sys
 import os
 import select
 import subprocess
-from communication import send, receive
-from clientFunctions import parseCommand
-from clientFunctions import init
-from clientFunctions import acceptFile
+from clientFunctions import parseCommand, init, acceptFile
 from controllers.CryptoController import *
 from controllers.SocketController import *
 
@@ -16,14 +13,13 @@ MAX_BYTE = 1024
 
 class Client:
   def __init__(self, host, port):
-    self.cryptography = SocketController()
     self.host = host
     self.port = port
     self.username = ''
-    init()
-    self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self.sock.connect((self.host, self.port))
     self.prompt = ''
+    init()
+    self.scontroller = SocketController()
+    self.sock = self.scontroller.connClient(self.host, self.port)
 
   def signIn(self):
     while True:
@@ -35,8 +31,8 @@ class Client:
       check_id = username + " " + password
       if (userInput == "1"):
         request = "login"
-        send(self.sock, request + "|" + check_id)
-        verified = receive(self.sock)
+        self.scontroller.send(self.sock, request + "|" + check_id)
+        verified = self.scontroller.receive(self.sock)
         if(verified == "LOGIN_SUCCESS"):
           self.username = username
           self.prompt = '[' + '@'.join((self.username, socket.gethostname().split('.')[0])) + ']> '
@@ -45,8 +41,8 @@ class Client:
           print("username or password incorrect")
       elif (userInput == "2"):
         request = "register"
-        send(self.sock, request + "|" + check_id)
-        verified = receive(self.sock)
+        self.scontroller.send(self.sock, request + "|" + check_id)
+        verified = self.scontroller.receive(self.sock)
         if verified == "REG_FAIL":
           print("Username already taken")
 
@@ -66,21 +62,21 @@ class Client:
           toSend = parseCommand(userInput)
           if toSend is None:
             continue
-          send(self.sock, toSend)
+          self.scontroller.send(self.sock, toSend)
 
         elif event == self.sock:
-          serverResponse = receive(self.sock)
+          serverResponse = self.scontroller.receive(self.sock)
 
           if (serverResponse != "ACK"):
             if (serverResponse == "READY_SEND"):
-              send(self.sock, "CLIENT_READY")
+              self.scontroller.send(self.sock, "CLIENT_READY")
               filepath = acceptFile(self.sock)
-              serverResponse = receive(self.sock)
+              serverResponse = self.scontroller.receive(self.sock)
               subprocess.Popen("vi " + filepath, shell=True).wait()
               #TODO: send file back and then delete from client
 
             elif (serverResponse == "READY_EDIT"):
-              serverResponse = receive(self.sock)
+              serverResponse = self.scontroller.receive(self.sock)
               realpath = os.path.dirname(os.path.realpath(__file__))
               cachepath = realpath + "/tmpcache/tmp"
               subprocess.Popen("vi " + cachepath, shell=True).wait()

@@ -1,11 +1,10 @@
 import vars
 import os
 import shutil
-from communication import send, receive
 
 ROOT_DIR = "rootdir"
 
-def parseCommand(cmd, client):
+def parseCommand(cmd, scontroller, acceptor):
   splitCmd = cmd.split("|")
   cmd = splitCmd[0]
   response= ""
@@ -30,7 +29,7 @@ def parseCommand(cmd, client):
     elif cmd == "cat":
       response = server_cat(splitCmd[1])
     elif cmd == "open" or cmd == "vim" or cmd == "edit":
-      response = server_open(splitCmd[1], client)
+      response = server_open(splitCmd[1], scontroller, acceptor)
     elif cmd == "logout":
       response = server_logout()
     elif cmd == "chmod":
@@ -90,18 +89,18 @@ def server_logout():
   print("To be implemented")
   return "ACK"
 
-def server_open(filename, client):
+def server_open(filename, scontroller, acceptor):
   if not os.path.exists(filename):
     response = "READY_EDIT"
-    send(client, response)
+    scontroller.send(acceptor, response)
   else:
     response = "READY_SEND"
-    send(client, response)
+    scontroller.send(acceptor, response)
 
     # wait for client to get ready to accept file
-    resp = receive(client)
+    resp = scontroller.receive(acceptor)
     if (resp == "CLIENT_READY"):
-      sendFile(client, filename)
+      sendFile(scontroller, acceptor, filename)
   return "ACK"
 
 def server_chmod():
@@ -119,16 +118,12 @@ def init():
 
   server_cd(ROOT_DIR)
 
-def sendFile(socket, filename):
+def sendFile(scontroller, acceptor, filename):
   #TODO encryption
   f = open(filename,'rb')
 
-  # l = f.read(1024)
-  # while (l):
-  #   send(socket, l)
-  #   l = f.read(1024)
   l = f.read()
-  send(socket, l)
+  scontroller.send(acceptor, l)
 
   f.close()
 
@@ -152,12 +147,10 @@ def verify(userId):
   splitUserID = userId.split()
   passpath = vars.realpath + "/rootdir/etc/passwd"
   userExist  = False
-  print(splitUserID[1])
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
       splitLine = line.split(" ")
-      print(line)
       if(splitUserID[0] == splitLine[0]):
         if(splitUserID[1] == splitLine[1]):
           userExist = True
@@ -170,14 +163,12 @@ def verify(userId):
 
 def createUser(userId):
   splitUserID = userId.split()
-  print(userId)
   passpath = vars.realpath + "/rootdir/etc/passwd"
   file = open(passpath,"a")
   file.write("\n" + userId)
   file.close()
-  userDir = ROOT_DIR +"/" + splitUserID[0]
-  print("the user dir is " + userDir)
-  os.makedirs(userDir)
+
+  os.makedirs(splitUserID[0])
 
 def userNameTaken(userID):
   passpath = vars.realpath + "/rootdir/etc/passwd"
@@ -186,7 +177,6 @@ def userNameTaken(userID):
     mylist = fp.read().splitlines()
     for line in mylist:
       splitLine = line.split(" ")
-      print(line)
       if(userID == splitLine[0]):
         userExist = True
   fp.close()
