@@ -4,6 +4,7 @@ import socket
 import sys
 import os
 import select
+import subprocess
 from communication import send, receive
 from clientFunctions import parseCommand
 from clientFunctions import init
@@ -75,10 +76,14 @@ class Client:
               send(self.sock, "CLIENT_READY")
               filepath = acceptFile(self.sock)
               serverResponse = receive(self.sock)
-              os.system('vi ' + filepath)
+              subprocess.Popen("vi " + filepath, shell=True).wait()
+
             elif (serverResponse == "READY_EDIT"):
               serverResponse = receive(self.sock)
-              os.system('vi tmpcache/tmp')
+              realpath = os.path.dirname(os.path.realpath(__file__))
+              cachepath = realpath + "/tmpcache/tmp"
+              subprocess.Popen("vi " + cachepath, shell=True).wait()
+
             else:
               print(serverResponse)
 
