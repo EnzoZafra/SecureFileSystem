@@ -1,10 +1,11 @@
+#!/usr/bin/env python
 import socket
 import sys
 import os
 from clientFunctions import parseCommand
 from clientFunctions import init
 from clientFunctions import acceptFile
-#from controllers.CryptoController import *
+from controllers.CryptoController import *
 from controllers.SocketController import *
 MAX_BYTE = 1024
 
@@ -23,9 +24,9 @@ def signIn():
       c.sendMsg(server,request)
       userName = raw_input("Please input a username: ")
       passWord = raw_input("Please input a password: ")
-    #  passHash = cryptography.calculateHash(passWord)
-    #  print(passHash)
-      check_id = userName + " " + passWord
+      passHash = cryptography.calculateHash(passWord)
+      print(passHash)
+      check_id = userName + " " + passHash
       c.sendMsg(server,check_id)
       userExist = c.recMsg(server)
       if(userExist == "T"):
@@ -37,9 +38,9 @@ def signIn():
       c.sendMsg(server,request)
       userName = raw_input("Please input a new Username: ")
       passWord = raw_input("Please input a new Password: ")
-    #  passHash = cryptography.calculateHash(passWord)
-    #  print(passHash)
-      check_id = userName + " " + passWord
+      passHash = cryptography.calculateHash(passWord)
+      print(passHash)
+      check_id = userName + " " + passHash
       c.sendMsg(server,check_id)
       userExist = c.recMsg(server)
       if(userExist == "T"):

@@ -7,12 +7,13 @@ class SocketController:
     self
 
   def sendMsg(self,socket, msg):
-    socket.send(msg.encode())
-    #TODO
-    print("TODO")
+		msg = unicode(msg,errors = 'ignore')
+		socket.send(msg.encode())
+		#TODO
+		print("TODO")
 
   def recMsg(self,socket):
-    msg = socket.recv(MAX_BYTE).decode()
+    msg = socket.recv(MAX_BYTE)
     return msg
 
   def connServer(self,host, port):
