@@ -1,4 +1,5 @@
 import vars
+import re
 import os
 import shutil
 
@@ -41,6 +42,12 @@ def server_ls(path):
   #TODO encryption
   if path == '':
     path = os.getcwd()
+
+  resulting = os.path.abspath(path)
+  result = checkInjection(resulting)
+  if result is True:
+    return "specified path does not exist"
+
   list = os.listdir(path)
 
   if len(list) == 0:
@@ -50,6 +57,12 @@ def server_ls(path):
 
 def server_cd(directory):
   #TODO encryption
+  resulting = os.path.abspath(directory)
+
+  result = checkInjection(resulting)
+  if result is True:
+    return "specified path does not exist"
+
   os.chdir(directory)
   return "ACK"
 
@@ -66,16 +79,38 @@ def server_mv(source, dest):
   else:
     destpath = os.getcwd() + "/" + dest
 
+
+  resulting = os.path.abspath(sourcepath)
+  result = checkInjection(resulting)
+  if result is True:
+    return "specified source does not exist"
+
+  resulting = os.path.abspath(destpath)
+  result = checkInjection(resulting)
+  if result is True:
+    return "specified destination does not exist"
+
   shutil.move(sourcepath, destpath)
   return "ACK"
 
 def server_cat(filename):
   #TODO encryption
+
+  resulting = os.path.abspath(filename)
+  result = checkInjection(resulting)
+  if result is True:
+    return "specified file does not exist"
+
   with open(filename, 'rb') as com:
     return com.read()
 
 def server_mkdir(directory):
   #TODO encryption
+  resulting = os.path.abspath(directory)
+  result = checkInjection(resulting)
+  if result is True:
+    return "specified path does not exist"
+
   os.makedirs(directory)
   return "ACK"
 
@@ -91,6 +126,8 @@ def server_logout(server, acceptor):
   return "LOGOUT"
 
 def server_open(filename, scontroller, acceptor):
+  #TODO encryption
+  #TODO check path of filename
   if not os.path.exists(filename):
     response = "READY_EDIT"
     scontroller.send(acceptor, response)
@@ -182,3 +219,10 @@ def userNameTaken(userID):
         userExist = True
   fp.close()
   return userExist
+
+def checkInjection(path):
+  pattern = re.compile(vars.realpath + "/rootdir")
+  match = pattern.match(path)
+  if not match:
+    return True
+  return False
