@@ -23,38 +23,27 @@ class Client:
     self.sock.connect((self.host, self.port))
 
   def signIn(self):
-    userExist = False
     while True:
-      userInput = raw_input("what would you like to do? [1]: signin [2]: register  : ")
-      if(userInput == "1"):
-        request = "signIn"
-        self.cryptography.sendMsg(self.sock, request)
-        userName = raw_input("Please input a username: ")
-        passWord = raw_input("Please input a password: ")
-        passHash = cryptography.calculateHash(passWord)
-        print(passHash)
-        check_id = userName + " " + passHash
-        self.cryptography.sendMsg(self.sock,check_id)
-        userExist = self.cryptography.recMsg(self.sock)
-        if(userExist == "T"):
+      userInput = raw_input("what would you like to do? [1]: signin [2]: register : ")
+      username = raw_input("Please input a username: ")
+      password = raw_input("Please input a password: ")
+      # passHash = cryptography.calculateHash(password)
+      # print(passHash)
+      check_id = username + " " + password
+      if (userInput == "1"):
+        request = "login"
+        send(self.sock, request + "|" + check_id)
+        verified = receive(self.sock)
+        if(verified == "LOGIN_SUCCESS"):
           return True
         else:
-          print("Username or Password Incorrect")
-      elif(userInput == "2"):
-        request = "createUser"
-        self.cryptography.sendMsg(self.sock,request)
-        userName = raw_input("Please input a new Username: ")
-        passWord = raw_input("Please input a new Password: ")
-        passHash = cryptography.calculateHash(passWord)
-        print(passHash)
-        check_id = userName + " " + passHash
-        self.cryptography.sendMsg(self.sock,check_id)
-        userExist = self.cryptography.recMsg(self.sock)
-        if(userExist == "T"):
+          print("username or password incorrect")
+      elif (userInput == "2"):
+        request = "register"
+        send(self.sock, request + "|" + check_id)
+        verified = receive(self.sock)
+        if verified == "REG_FAIL":
           print("Username already taken")
-        else:
-          print("Creating new user")
-          return True
 
   def loop(self):
     inputs = [0, self.sock]
