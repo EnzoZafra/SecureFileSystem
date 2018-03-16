@@ -63,5 +63,4 @@ while True:
     cmd = s.recMsg(client)
     response = parseCommand(cmd, client)
     if (response is not ""):
-      byteinputToClient = response.encode()
       s.sendMsg(client,response)

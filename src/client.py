@@ -72,8 +72,7 @@ while True:
 
   if (serverResponse != "ACK"):
     if (serverResponse == "READY_SEND"):
-      acknowledge = "CLIENT_READY".encode()
-      server.send(acknowledge)
+      c.send(server,"CLIENT_READY")
       filepath = acceptFile(server)
       serverResponse = c.recMsg(server)
       os.system('vi ' + filepath)
