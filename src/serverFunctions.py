@@ -129,10 +129,12 @@ def verify(userId):
   splitUserID = userId.split(" ")
   passpath = vars.realpath + "/rootdir/etc/passwd"
   userExist  = "F"
+  print(splitUserID[1])
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
       splitLine = line.split(" ")
+      print(line)
       if(splitUserID[0] == splitLine[0]):
         if(splitUserID[1] == splitLine[1]):
           userExist = "T"
@@ -145,6 +147,7 @@ def verify(userId):
 
 def createUser(userId):
   splitUserID = userId.split(" ")
+  print(userId)
   passpath = vars.realpath + "/rootdir/etc/passwd"
   file = open(passpath,"a")
   file.write("\n" + userId)
@@ -162,6 +165,7 @@ def userNameTaken(userID):
     mylist = fp.read().splitlines()
     for line in mylist:
       splitLine = line.split(" ")
+      print(line)
       if(splitUserID[0] == splitLine[0]):
         userExist = "T"
   fp.close()
