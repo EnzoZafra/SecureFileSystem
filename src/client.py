@@ -18,9 +18,11 @@ class Client:
     self.cryptography = SocketController()
     self.host = host
     self.port = port
+    self.username = ''
     init()
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.sock.connect((self.host, self.port))
+    self.prompt = ''
 
   def signIn(self):
     while True:
@@ -35,6 +37,8 @@ class Client:
         send(self.sock, request + "|" + check_id)
         verified = receive(self.sock)
         if(verified == "LOGIN_SUCCESS"):
+          self.username = username
+          self.prompt = '[' + '@'.join((self.username, socket.gethostname().split('.')[0])) + ']> '
           return True
         else:
           print("username or password incorrect")
@@ -50,21 +54,21 @@ class Client:
 
     signedIn = self.signIn()
     while signedIn:
-      inEvent, outEvent, exceptEvent = select.select(inputs, [], [])
-      # userInput = raw_input("> ")
-      print("> ")
+      sys.stdout.write(self.prompt)
+      sys.stdout.flush()
 
+      inEvent, outEvent, exceptEvent = select.select(inputs, [], [])
       for event in inEvent:
-        print("Read event")
+
         if event == 0:
           userInput = sys.stdin.readline().strip()
           toSend = parseCommand(userInput)
-          print(toSend)
+          if toSend is None:
+            continue
           send(self.sock, toSend)
+
         elif event == self.sock:
           serverResponse = receive(self.sock)
-
-          print("waiting for response from server")
 
           if (serverResponse != "ACK"):
             if (serverResponse == "READY_SEND"):

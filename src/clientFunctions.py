@@ -3,9 +3,13 @@ import os
 def parseCommand(userInput):
 
   splitUserInput = userInput.split()
-  cmd = splitUserInput[0]
-  if len(splitUserInput) == 1:
+  inLength = len(splitUserInput)
+  if inLength == 0:
+    return
+  elif inLength == 1:
     splitUserInput.append('')
+
+  cmd = splitUserInput[0]
 
   toSend = ""
 
@@ -38,6 +42,8 @@ def parseCommand(userInput):
     toSend = client_login()
   elif (cmd == "reg"):
     toSend = client_register()
+  else:
+    return
 
   byteToSend = toSend.encode()
   return byteToSend

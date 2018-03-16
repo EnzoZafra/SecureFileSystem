@@ -62,9 +62,7 @@ class Server:
 
       # event from sockets
         else:
-          print("READ EVENT")
           cmd = receive(s)
-          print("cmd: " + cmd)
           response = parseCommand(cmd, s)
           if (response is not ""):
             send(s, response)

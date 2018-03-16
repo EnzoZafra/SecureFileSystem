@@ -135,6 +135,7 @@ def sendFile(socket, filename):
 def server_login(userInfo):
   vars.loggedin = verify(userInfo)
   if vars.loggedin:
+    os.chdir(userInfo.split()[0])
     return "LOGIN_SUCCESS"
   else:
     return "LOGIN_FAIL"
