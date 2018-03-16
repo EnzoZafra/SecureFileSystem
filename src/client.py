@@ -73,11 +73,11 @@ class Client:
           if (serverResponse != "ACK"):
             if (serverResponse == "READY_SEND"):
               send(self.sock, "CLIENT_READY")
-              filepath = acceptFile(server)
-              sererResponse = receive(self.sock)
+              filepath = acceptFile(self.sock)
+              serverResponse = receive(self.sock)
               os.system('vi ' + filepath)
             elif (serverResponse == "READY_EDIT"):
-              sererResponse = receive(self.sock)
+              serverResponse = receive(self.sock)
               os.system('vi tmpcache/tmp')
             else:
               print(serverResponse)

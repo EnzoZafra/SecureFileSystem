@@ -1,4 +1,5 @@
 import os
+from communication import send, receive
 
 def parseCommand(userInput):
 
@@ -105,11 +106,7 @@ def acceptFile(socket):
   #TODO decryption
   filename = "tmpcache/tmp"
   with open(filename, 'wb') as f:
-    while True:
-      data = socket.recv(1024)
-      if not data:
-        break
-      # write data to a file
-      f.write(data)
+    data = receive(socket)
+    f.write(data)
   f.close()
   return filename

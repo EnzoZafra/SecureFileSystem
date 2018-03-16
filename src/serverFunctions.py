@@ -1,6 +1,7 @@
 import vars
 import os
 import shutil
+from communication import send, receive
 
 ROOT_DIR = "rootdir"
 
@@ -92,17 +93,14 @@ def server_logout():
 def server_open(filename, client):
   if not os.path.exists(filename):
     response = "READY_EDIT"
-    byteinputToClient = response.encode()
-    client.send(response)
+    send(client, response)
   else:
     response = "READY_SEND"
-    byteinputToClient = response.encode()
-    client.send(response)
+    send(client, response)
 
     # wait for client to get ready to accept file
-    resp = client.recv(1024).decode()
+    resp = receive(client)
     if (resp == "CLIENT_READY"):
-      print("recieved CLIENT_READY")
       sendFile(client, filename)
   return "ACK"
 
@@ -122,14 +120,16 @@ def init():
   server_cd(ROOT_DIR)
 
 def sendFile(socket, filename):
-  print(os.getcwd())
-  print(filename)
   #TODO encryption
   f = open(filename,'rb')
-  l = f.read(1024)
-  while (l):
-    socket.send(l)
-    l = f.read(1024)
+
+  # l = f.read(1024)
+  # while (l):
+  #   send(socket, l)
+  #   l = f.read(1024)
+  l = f.read()
+  send(socket, l)
+
   f.close()
 
 def server_login(userInfo):
