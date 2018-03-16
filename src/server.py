@@ -7,15 +7,15 @@ from serverFunctions import init
 from serverFunctions import verify
 from serverFunctions import userNameTaken
 from serverFunctions import createUser
-
+from controllers.SocketController import *
 # define constants
 MAX_BYTE = 1024
 
 # initialize global vars
 vars.init()
 init()
+s = SocketController()
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 if len(sys.argv) < 2:
   print("usage: python server.py [portnumber]")
@@ -27,39 +27,41 @@ if port > 49151 or port < 1024:
   print("error: portnumber must be an integer between 1024-49151")
   exit()
 
-s.bind((host, port))
-s.listen(5)
-
 client = None
 while True:
+
   if client is None:
       print("Still connecting")
-      client, address = s.accept()
+      client, address = s.connServer(host,port)
       print( "connected from", address )
-
       while True:
-        request = client.recv(MAX_BYTE).decode()
+        request = s.recMsg(client)
+        print(request)
         if(request == "signIn"):
-          userId = client.recv(MAX_BYTE).decode()
+          userId = s.recMsg(client)
           doesUserExist = verify(userId)
           if(doesUserExist == "T"):
-            client.send(doesUserExist.encode())
+            s.sendMsg(client,doesUserExist)
+            print("in hare")
             break
           else:
-            client.send("F".encode())
+            s.sendMsg(client,"F")
         if(request == "createUser"):
-          userId = client.recv(MAX_BYTE).decode()
+          userId = s.recMsg(client)
           doesUserExist = userNameTaken(userId)
           if(doesUserExist == "T"):
-            client.send(doesUserExist.encode())
+            s.sendMsg(client,doesUserExist)
           else:
-            client.send("F".encode())
-            userId = client.recv(MAX_BYTE).decode()
+            s.sendMsg(client,"F")
+            userId = s.recMsg(client)
             createUser(userId)
+            print("lol")
+            break
+
   else:
     print("BUSY WAITING")
-    cmd = client.recv(MAX_BYTE).decode()
+    cmd = s.recMsg(client)
     response = parseCommand(cmd, client)
     if (response is not ""):
       byteinputToClient = response.encode()
-      client.send(response)
+      s.sendMsg(client,response)

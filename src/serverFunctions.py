@@ -7,7 +7,7 @@ ROOT_DIR = "rootdir"
 def parseCommand(cmd, client):
   splitCmd = cmd.split("|")
   cmd = splitCmd[0]
-
+  response= ""
   if cmd == "ls":
     response = server_ls(splitCmd[1])
   elif cmd == "cd":
