@@ -15,7 +15,7 @@ MAX_BYTE = 1024
 
 class Client:
   def __init__(self, host, port):
-    self.cryptography = CryptoController()
+    self.cryptography = SocketController()
     self.host = host
     self.port = port
     init()
@@ -54,14 +54,13 @@ class Client:
           print("Username already taken")
         else:
           print("Creating new user")
-          self.cryptography.sendMsg(self.sock,check_id)
           return True
 
   def loop(self):
     inputs = [0, self.sock]
 
-    # self.signIn()
-    while True:
+    signedIn = self.signIn()
+    while signedIn:
       inEvent, outEvent, exceptEvent = select.select(inputs, [], [])
       # userInput = raw_input("> ")
       print("> ")

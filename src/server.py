@@ -55,29 +55,6 @@ class Server:
           print("connected from: ", address)
           inputs.append(client)
           self.sockets.append(client)
-          # while True:
-          #   request = s.recMsg(client)
-          #   print(request)
-          #   if(request == "signIn"):
-          #     userId = s.recMsg(client)
-          #     doesUserExist = verify(userId)
-          #     if(doesUserExist == "T"):
-          #       s.sendMsg(client,doesUserExist)
-          #       print("in hare")
-          #       break
-          #     else:
-          #       s.sendMsg(client,"F")
-          #   if(request == "createUser"):
-          #     userId = s.recMsg(client)
-          #     doesUserExist = userNameTaken(userId)
-          #     if(doesUserExist == "T"):
-          #       s.sendMsg(client,doesUserExist)
-          #     else:
-          #       s.sendMsg(client,"F")
-          #       userId = s.recMsg(client)
-          #       createUser(userId)
-          #       print("lol")
-          #       break
         elif s == sys.stdin:
           # handle standard input
           junk = sys.stdin.readline()
@@ -85,6 +62,22 @@ class Server:
 
       # event from sockets
         else:
+          while True:
+            request = receive(s)
+            print(request)
+            userId = receive(s)
+            if(request == "signIn"):
+              doesUserExist = verify(userId)
+              send(s, doesUserExist)
+              if(doesUserExist == "T"):
+                break
+            if(request == "createUser"):
+              doesUserExist = userNameTaken(userId)
+              if(doesUserExist == "F"):
+                createUser(userId)
+                print("lol")
+                break
+              s.sendMsg(client,doesUserExist)
           print("READ EVENT")
           cmd = receive(s)
           response = parseCommand(cmd, s)
