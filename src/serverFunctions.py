@@ -8,26 +8,33 @@ def parseCommand(cmd, client):
   splitCmd = cmd.split("|")
   cmd = splitCmd[0]
   response= ""
-  if cmd == "ls":
-    response = server_ls(splitCmd[1])
-  elif cmd == "cd":
-    response = server_cd(splitCmd[1])
-  elif cmd == "mv" or cmd == "move":
-    param = splitCmd[1].split()
-    response = server_mv(param[0], param[1])
-  elif cmd == "pwd":
-    response = server_pwd()
-  elif cmd == "mkdir":
-    response = server_mkdir(splitCmd[1])
-  elif cmd == "cat":
-    response = server_cat(splitCmd[1])
-  elif cmd == "open" or cmd == "vim" or cmd == "edit":
-    response = server_open(splitCmd[1], client)
-  elif cmd == "logout":
-    response = server_logout()
-  elif cmd == "chmod":
-    #TODO add params
-    response = server_chmod()
+
+  if not vars.loggedin:
+    if cmd == "login":
+      response = server_login(splitCmd[1])
+    elif cmd == "register":
+      response = server_register(splitCmd[1])
+  else :
+    if cmd == "ls":
+      response = server_ls(splitCmd[1])
+    elif cmd == "cd":
+      response = server_cd(splitCmd[1])
+    elif cmd == "mv" or cmd == "move":
+      param = splitCmd[1].split()
+      response = server_mv(param[0], param[1])
+    elif cmd == "pwd":
+      response = server_pwd()
+    elif cmd == "mkdir":
+      response = server_mkdir(splitCmd[1])
+    elif cmd == "cat":
+      response = server_cat(splitCmd[1])
+    elif cmd == "open" or cmd == "vim" or cmd == "edit":
+      response = server_open(splitCmd[1], client)
+    elif cmd == "logout":
+      response = server_logout()
+    elif cmd == "chmod":
+      #TODO add params
+      response = server_chmod()
   return response
 
 def server_ls(path):
@@ -125,10 +132,25 @@ def sendFile(socket, filename):
     l = f.read(1024)
   f.close()
 
+def server_login(userInfo):
+  vars.loggedin = verify(userInfo)
+  if vars.loggedin:
+    return "LOGIN_SUCCESS"
+  else:
+    return "LOGIN_FAIL"
+
+def server_register(userInfo):
+  taken = userNameTaken(userInfo.split()[0])
+  if not taken:
+    createUser(userInfo)
+    return "REG_SUCCESS"
+  else:
+    return "REG_FAIL"
+
 def verify(userId):
-  splitUserID = userId.split(" ")
+  splitUserID = userId.split()
   passpath = vars.realpath + "/rootdir/etc/passwd"
-  userExist  = "F"
+  userExist  = False
   print(splitUserID[1])
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
@@ -137,7 +159,7 @@ def verify(userId):
       print(line)
       if(splitUserID[0] == splitLine[0]):
         if(splitUserID[1] == splitLine[1]):
-          userExist = "T"
+          userExist = True
           return userExist
         else:
           return userExist
@@ -146,7 +168,7 @@ def verify(userId):
 
 
 def createUser(userId):
-  splitUserID = userId.split(" ")
+  splitUserID = userId.split()
   print(userId)
   passpath = vars.realpath + "/rootdir/etc/passwd"
   file = open(passpath,"a")
@@ -156,17 +178,15 @@ def createUser(userId):
   print("the user dir is " + userDir)
   os.makedirs(userDir)
 
-
 def userNameTaken(userID):
-  splitUserID = userID.split(" ")
   passpath = vars.realpath + "/rootdir/etc/passwd"
-  userExist  = "F"
+  userExist  = False
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
       splitLine = line.split(" ")
       print(line)
-      if(splitUserID[0] == splitLine[0]):
-        userExist = "T"
+      if(userID == splitLine[0]):
+        userExist = True
   fp.close()
   return userExist

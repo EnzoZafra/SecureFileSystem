@@ -62,24 +62,9 @@ class Server:
 
       # event from sockets
         else:
-          while True:
-            request = receive(s)
-            print(request)
-            userId = receive(s)
-            if(request == "signIn"):
-              doesUserExist = verify(userId)
-              send(s, doesUserExist)
-              if(doesUserExist == "T"):
-                break
-            if(request == "createUser"):
-              doesUserExist = userNameTaken(userId)
-              if(doesUserExist == "F"):
-                createUser(userId)
-                print("lol")
-                break
-              s.sendMsg(client,doesUserExist)
           print("READ EVENT")
           cmd = receive(s)
+          print("cmd: " + cmd)
           response = parseCommand(cmd, s)
           if (response is not ""):
             send(s, response)

@@ -66,11 +66,11 @@ decrypted_snowden   = cryptography.decrypt(keypair_snowden, encrypted_for_snowde
 decrypted_pytn      = cryptography.decrypt(keypair_pytn, encrypted_for_pytn)
 
 # Signature validation and console output...
-if(cryptography.validateSignature(decrypted_snowden, pubkey_pytn, signature_pytn)):
-    print "Edward Snowden received from PyTn:"
-    print decrypted_snowden
-    print ""
+# if(cryptography.validateSignature(decrypted_snowden, pubkey_pytn, signature_pytn)):
+#     print "Edward Snowden received from PyTn:"
+#     print decrypted_snowden
+#     print ""
 
-if(cryptography.validateSignature(decrypted_pytn, pubkey_snowden, signature_snowden)):
-   print "PyTN received from Edward Snowden:"
-   print decrypted_pytn
+# if(cryptography.validateSignature(decrypted_pytn, pubkey_snowden, signature_snowden)):
+#    print "PyTN received from Edward Snowden:"
+#    print decrypted_pytn

@@ -34,6 +34,10 @@ def parseCommand(userInput):
     #TODO add chmod params
     params = "lol test"
     toSend = client_chmod(params)
+  elif (cmd == "login"):
+    toSend = client_login()
+  elif (cmd == "reg"):
+    toSend = client_register()
 
   byteToSend = toSend.encode()
   return byteToSend
