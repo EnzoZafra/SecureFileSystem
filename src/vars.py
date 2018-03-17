@@ -6,6 +6,7 @@ def init():
   global loggedin
   global pubkeys
   global keypair
+  global aeskey
 
   realpath = os.path.dirname(os.path.realpath(__file__))
   loggedin = False

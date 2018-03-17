@@ -149,7 +149,7 @@ def server_open(filename, scontroller, acceptor):
     # wait for client to get ready to accept file
     resp = scontroller.receive(acceptor, vars.keypair)
     if (resp == "CLIENT_READY"):
-      scontroller.sendFile(acceptor, vars.pubkeys[acceptor], filename)
+      scontroller.serverSendFile(acceptor, vars.pubkeys[acceptor], filename, vars.aeskey)
   return "ACK"
 
 def server_chmod():
@@ -164,10 +164,10 @@ def init():
 
   if not os.path.exists(etcdir + "/permissions"):
     with open(etcdir + "/permissions", 'w'):pass
-    
+
   if not os.path.exists(etcdir + "/passwd"):
     with open(etcdir + "/passwd", 'w'): pass
-  
+
   if not os.path.exists(etcdir + "/filePerm"):
     with open(etcdir + "/filePerm", 'w'): pass
 
@@ -191,7 +191,7 @@ def server_register(userInfo):
     return "REG_FAIL"
 
 def server_acceptfile(filename, scontroller, socket):
-  scontroller.acceptFile(socket, filename)
+  scontroller.serverAcceptFile(socket, vars.keypair, filename, vars.aeskey)
   filePerm(filename)
   return "ACK"
 
@@ -272,7 +272,7 @@ def filePerm(fileName):
   other = "N"
   fileperm = fileDir + " " + owner + "," + group +","+other +" " + currUser
   file.write(fileperm + "\n")
-  file.close  
+  file.close
 
 def getUser():
   path = os.getcwd()
@@ -374,7 +374,7 @@ def grabOwnerofFile(filepath):
   file.close()
   return owner
 
-#TO FIX when prompt to login make sure that the input is a 1 or 2 
+#TO FIX when prompt to login make sure that the input is a 1 or 2
 
 
 

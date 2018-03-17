@@ -83,15 +83,27 @@ class SocketController:
   def sendFile(self, socket, pubkey, filename):
     f = open(filename, 'rb')
     buf = f.read()
-    # decryptbuf = self.crypto.decrypt(vars.keypair, buf)
-    self.send(socket, pubkey, decryptbuf)
+    self.send(socket, pubkey, buf)
     f.close()
 
   def acceptFile(self, socket, keypair, filepath):
     with open(filepath, 'wb') as f:
       data = self.receive(socket, keypair)
-      # encryptdata = self.crypto.encrypt(vars.keypair, data).encode('hex')
-      f.write(encryptdata)
+      f.write(data)
     f.close()
     return filepath
 
+  def serverSendFile(self, socket, pubkey, filename, aeskey):
+    f = open(filename, 'rb')
+    buf = f.read()
+    decryptbuf = self.crypto.aesdecrypt(aeskey, buf)
+    self.send(socket, pubkey, decryptbuf)
+    f.close()
+
+  def serverAcceptFile(self, socket, keypair, filepath, aeskey):
+    with open(filepath, 'wb') as f:
+      data = self.receive(socket, keypair)
+      encryptdata = self.crypto.aesencrypt(aeskey, data)
+      f.write(encryptdata)
+    f.close()
+    return filepath

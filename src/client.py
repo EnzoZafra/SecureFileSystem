@@ -85,7 +85,7 @@ class Client:
                 self.scontroller.send(self.sock, self.serverpub, "CLIENT_READY")
                 filename = tmp[1]
                 filepath = "tmpcache/" + filename
-                self.scontroller.acceptFile(self.sock, filepath)
+                self.scontroller.acceptFile(self.sock, self.keypair, filepath)
                 serverResponse = self.scontroller.receive(self.sock, self.keypair)
                 subprocess.Popen("vi " + filepath, shell=True).wait()
 

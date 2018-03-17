@@ -8,11 +8,8 @@ import vars
 from serverFunctions import parseCommand, init
 from controllers.SocketController import *
 
-# define constants
-MAX_BYTE = 1024
-
 class Server:
-  def __init__(self, host, port):
+  def __init__(self, host, port, pw):
     self.host = host
     self.port = port
     self.sockets = []
@@ -21,6 +18,8 @@ class Server:
     self.server = self.scontroller.connServer(self.host, self.port)
     vars.init()
     vars.keypair = self.crypto.genAsymKeys()
+    vars.aeskey = self.crypto.genAesKey(pw)
+    print(sys.getsizeof(vars.aeskey))
     init()
     # Trap keyboard interrupts
     signal.signal(signal.SIGINT, self.sighandler)
@@ -77,14 +76,15 @@ class Server:
     self.server.close()
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-      print("usage: python server.py [portnumber]")
-      exit()
+  if len(sys.argv) < 2:
+    print("usage: python server.py [portnumber]")
+    exit()
 
-    host = ''
-    port = int(sys.argv[1])
-    if port > 49151 or port < 1024:
-      print("error: portnumber must be an integer between 1024-49151")
-      exit()
+  host = ''
+  port = int(sys.argv[1])
+  if port > 49151 or port < 1024:
+    print("error: portnumber must be an integer between 1024-49151")
+    exit()
 
-    Server(host, port).serve()
+  pw = raw_input("Enter server password: ")
+  Server(host, port, pw).serve()

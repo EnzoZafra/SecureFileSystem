@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 import Crypto
+import base64
 from Crypto.PublicKey import RSA
 from Crypto import Random
-from Crypto.Hash import SHA224
+from Crypto.Hash import SHA256
 from Crypto.Cipher import PKCS1_OAEP
+from Crypto.Cipher import AES
+
 
 KEYSIZE = 4096
 
 class CryptoController:
   def __init__(self):
     self.keysize = KEYSIZE
+    self.bs = 32
 
   def genAsymKeys(self):
     random = Random.new().read
@@ -22,7 +26,7 @@ class CryptoController:
     return RSA.importKey(textkey)
 
   def calculateHash(self, message):
-    return SHA224.new(message).digest().encode("hex")
+    return SHA256.new(message).digest().encode("hex")
 
   def addSignature(self, keypair, hash):
     return keypair.sign(hash, '')
@@ -30,55 +34,46 @@ class CryptoController:
   def encrypt(self, pubkey, plaintext):
     cipher = PKCS1_OAEP.new(pubkey)
     return cipher.encrypt(plaintext)
-    # return pubkey.encrypt(plaintext)
 
   def decrypt(self, keypair, ciphertext):
     cipher = PKCS1_OAEP.new(keypair)
     return cipher.decrypt(ciphertext)
-    # return keypair.decrypt(ciphertext)
+
+  def aesencrypt(self, key, plaintext):
+    # message = self.pad(plaintext)
+    # iv = Random.new().read(AES.block_size)
+    # cipher = AES.new(key, AES.MODE_CBC, iv)
+    # return iv + cipher.encrypt(message)
+    plaintext = self._pad(plaintext)
+    iv = Random.new().read(AES.block_size)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return base64.b64encode(iv + cipher.encrypt(plaintext))
+
+  def aesdecrypt(self, key, ciphertext):
+    # iv = ciphertext[:AES.block_size]
+    # cipher = AES.new(key, AES.MODE_CBC, iv)
+    # plaintext = cipher.decrypt(ciphertext[AES.block_size:])
+    # return plaintext.rstrip(b"\0")
+    ciphertext = base64.b64decode(ciphertext)
+    iv = ciphertext[:AES.block_size]
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return self._unpad(cipher.decrypt(ciphertext[AES.block_size:])).decode('utf-8')
 
   def validateSignature(self, decrypted, pubkey, signature):
-    recalcHash = SHA224.new(decrypted).digest().encode("hex")
+    recalcHash = SHA256.new(decrypted).digest().encode("hex")
 
     if(pubkey.verify(recalcHash, signature)):
       return True
     return False
 
+  def genAesKey(self, passphrase):
+    return SHA256.new(passphrase).digest()
 
-# cryptography = CryptoController()
+  def pad(self, s):
+      return s + b"\0" * (AES.block_size - len(s) % AES.block_size)
 
-# # Generate RSA private/public key pairs for both parties...
-# keypair_snowden = cryptography.genAsymKeys()
-# keypair_pytn = cryptography.genAsymKeys()
+  def _pad(self, s):
+    return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
 
-# # Public key export for exchange between parties...
-# pubkey_snowden  = cryptography.getPublicKey(keypair_snowden)
-# pubkey_pytn     = cryptography.getPublicKey(keypair_pytn)
-
-# # Plain text messages...
-# message_to_snowden  = 'You are a patriot!'
-# message_to_pytn     = "Russia is really nice this time of year...\nUse encryption and make the NSA CPUs churn and burn!"
-
-# # Generate digital signatures using private keys...
-# hash_of_snowden_message = cryptography.calculateHash(message_to_snowden)
-# signature_pytn = cryptography.addSignature(keypair_pytn, hash_of_snowden_message)
-# hash_of_pytn_message    = cryptography.calculateHash(message_to_pytn)
-# signature_snowden = cryptography.addSignature(keypair_snowden, hash_of_pytn_message)
-
-# # Encrypt messages using the other party's public key...
-# encrypted_for_snowden   = cryptography.encrypt(pubkey_snowden, message_to_snowden)    #from PyTN
-# encrypted_for_pytn      = cryptography.encrypt(pubkey_pytn, message_to_pytn)          #from Snowden
-
-# # Decrypt messages using own private keys...
-# decrypted_snowden   = cryptography.decrypt(keypair_snowden, encrypted_for_snowden)
-# decrypted_pytn      = cryptography.decrypt(keypair_pytn, encrypted_for_pytn)
-
-# Signature validation and console output...
-# if(cryptography.validateSignature(decrypted_snowden, pubkey_pytn, signature_pytn)):
-#     print "Edward Snowden received from PyTn:"
-#     print decrypted_snowden
-#     print ""
-
-# if(cryptography.validateSignature(decrypted_pytn, pubkey_snowden, signature_snowden)):
-#    print "PyTN received from Edward Snowden:"
-#    print decrypted_pytn
+  def _unpad(self, s):
+    return s[:-ord(s[len(s)-1:])]
