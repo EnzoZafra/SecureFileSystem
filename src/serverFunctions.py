@@ -191,6 +191,7 @@ def server_register(userInfo):
 
 def server_acceptfile(filename, scontroller, socket):
   scontroller.acceptFile(socket, filename)
+  filePerm(filename)
   return "ACK"
 
 def verify(userId):
@@ -297,7 +298,9 @@ def getFilePath():
   rootpath = "/"
   rootpathFound = False
   for i in range(0,lengthSplitPath):
-    if(splitPath[i] == "rootdir" or rootpathFound == True):
+    if(splitPath[i] == "rootdir"):
       rootpathFound  = True
+      continue
+    if(rootpathFound == True):
       rootpath =  rootpath + splitPath[i] + "/"
   return rootpath
