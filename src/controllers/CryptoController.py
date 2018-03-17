@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import Crypto
 from Crypto.PublicKey import RSA
 from Crypto import Random

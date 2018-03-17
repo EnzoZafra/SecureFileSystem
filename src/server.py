@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import select
 import signal
 import socket
