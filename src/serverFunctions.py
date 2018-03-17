@@ -128,8 +128,6 @@ def server_logout(server, acceptor):
   return "LOGOUT"
 
 def server_open(filename, scontroller, acceptor):
-  #TODO encryption
-
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
   if result is True:
@@ -137,16 +135,16 @@ def server_open(filename, scontroller, acceptor):
 
   if not os.path.exists(filename):
     response = "READY_EDIT|" + filename
-    scontroller.send(acceptor, response)
+    scontroller.send(acceptor, vars.pubkeys[acceptor], response)
   else:
     response = "READY_SEND"
     response = "READY_SEND|" + filename
-    scontroller.send(acceptor, response)
+    scontroller.send(acceptor, vars.pubkeys[acceptor], response)
 
     # wait for client to get ready to accept file
-    resp = scontroller.receive(acceptor)
+    resp = scontroller.receive(acceptor, vars.keypair)
     if (resp == "CLIENT_READY"):
-      scontroller.sendFile(acceptor, filename)
+      scontroller.sendFile(acceptor, vars.pubkeys[acceptor], filename)
   return "ACK"
 
 def server_chmod():

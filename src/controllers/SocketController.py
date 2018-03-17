@@ -1,8 +1,8 @@
 import socket
 import struct
 import cPickle
+from CryptoController import *
 
-MAX_BYTE = 1024
 marshall = cPickle.dumps
 unmarshall = cPickle.loads
 
@@ -10,15 +10,50 @@ class SocketController:
 
   def __init__(self):
     self
+    self.crypto = CryptoController()
 
-  def send(self, s, *args):
+  def send(self, s, pubkey, *args):
+    buf = marshall(args)
+    # encryptbuf = self.crypto.encrypt(pubkey, buf)
+    encryptbuf = self.crypto.encrypt(pubkey, buf).encode('hex')
+
+    value = socket.htonl(len(encryptbuf))
+    size = struct.pack("L", value)
+
+    s.send(size)
+    s.send(encryptbuf)
+
+    #TODO: remove test
+    # print(encryptbuf)
+
+  def receive(self, s, keypair):
+    size = struct.calcsize("L")
+    size = s.recv(size)
+    try:
+      size = socket.ntohl(struct.unpack("L", size)[0])
+    except struct.error, e:
+      return ''
+
+    buf = ""
+
+    while len(buf) < size:
+      buf = s.recv(size - len(buf))
+
+    buf = buf.decode('hex')
+
+    decryptbuf = self.crypto.decrypt(keypair, buf)
+
+    return unmarshall(decryptbuf)[0]
+
+  def pubsend(self, s, *args):
     buf = marshall(args)
     value = socket.htonl(len(buf))
     size = struct.pack("L", value)
+
     s.send(size)
     s.send(buf)
 
-  def receive(self, s):
+  def pubreceive(self, s):
     size = struct.calcsize("L")
     size = s.recv(size)
     try:
@@ -33,14 +68,6 @@ class SocketController:
 
     return unmarshall(buf)[0]
 
-  # def sendMsg(self,socket, msg):
-  #   msg = unicode(msg,errors = 'ignore')
-  #   socket.send(msg.encode())
-
-  # def recMsg(self,socket):
-  #   msg = socket.recv(MAX_BYTE)
-  #   return msg
-
   def connServer(self, host, port):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, port))
@@ -52,18 +79,18 @@ class SocketController:
     server.connect((host,port))
     return server
 
-  def sendFile(self, socket, filename):
-    #TODO encryption
+  def sendFile(self, socket, pubkey, filename):
     f = open(filename, 'rb')
-    l = f.read()
-    self.send(socket, l)
+    buf = f.read()
+    # decryptbuf = self.crypto.decrypt(vars.keypair, buf)
+    self.send(socket, pubkey, decryptbuf)
     f.close()
 
-  def acceptFile(self, socket, filepath):
-    #TODO decryption
+  def acceptFile(self, socket, keypair, filepath):
     with open(filepath, 'wb') as f:
-      data = self.receive(socket)
-      f.write(data)
+      data = self.receive(socket, keypair)
+      # encryptdata = self.crypto.encrypt(vars.keypair, data).encode('hex')
+      f.write(encryptdata)
     f.close()
     return filepath
 

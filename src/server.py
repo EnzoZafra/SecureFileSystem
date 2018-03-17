@@ -16,8 +16,10 @@ class Server:
     self.port = port
     self.sockets = []
     self.scontroller = SocketController()
+    self.crypto = CryptoController()
     self.server = self.scontroller.connServer(self.host, self.port)
     vars.init()
+    vars.keypair = self.crypto.genAsymKeys()
     init()
     # Trap keyboard interrupts
     signal.signal(signal.SIGINT, self.sighandler)
@@ -30,6 +32,15 @@ class Server:
     for socket in self.sockets:
         socket.close()
     self.server.close()
+
+  def exchangeKey(self, client):
+    # send my public
+    exportpub = vars.keypair.publickey().exportKey()
+    self.scontroller.pubsend(client, exportpub)
+
+    # accept their public
+    importpub = self.scontroller.pubreceive(client)
+    vars.pubkeys[client] = self.crypto.importKey(importpub)
 
   def serve(self):
     inputs = [self.server, sys.stdin]
@@ -49,6 +60,7 @@ class Server:
           print("connected from: ", address)
           inputs.append(client)
           self.sockets.append(client)
+          self.exchangeKey(client)
         elif s == sys.stdin:
           # handle standard input
           junk = sys.stdin.readline()
@@ -56,10 +68,10 @@ class Server:
 
       # event from sockets
         else:
-          cmd = self.scontroller.receive(s)
+          cmd = self.scontroller.receive(s, vars.keypair)
           response = parseCommand(cmd, self, s)
           if (response is not ""):
-            self.scontroller.send(s, response)
+            self.scontroller.send(s, vars.pubkeys[s], response)
 
     self.server.close()
 
