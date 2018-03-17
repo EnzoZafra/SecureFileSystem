@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import Crypto
-import base64
 from Crypto.PublicKey import RSA
 from Crypto import Random
 from Crypto.Hash import SHA256
@@ -43,10 +42,10 @@ class CryptoController:
   def aesencrypt(self, key, plaintext):
     plaintext = self._pad(plaintext)
     cipher = AES.new(key, AES.MODE_CBC, self.iv)
-    return base64.b64encode(self.iv + cipher.encrypt(plaintext))
+    return (self.iv + cipher.encrypt(plaintext)).encode('hex')
 
   def aesdecrypt(self, key, ciphertext):
-    ciphertext = base64.b64decode(ciphertext)
+    ciphertext = ciphertext.decode('hex')
     self.iv = ciphertext[:AES.block_size]
     cipher = AES.new(key, AES.MODE_CBC, self.iv)
     return self._unpad(cipher.decrypt(ciphertext[AES.block_size:])).decode('utf-8')

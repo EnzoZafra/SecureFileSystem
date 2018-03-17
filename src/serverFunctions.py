@@ -27,7 +27,7 @@ def parseCommand(cmd, server, acceptor):
     elif cmd == "pwd":
       response = server_pwd()
     elif cmd == "mkdir":
-      response = server_mkdir(splitCmd[1])
+      response = server_mkdir(splitCmd[1], server.crypto)
     elif cmd == "cat":
       response = server_cat(splitCmd[1], server.crypto)
     elif cmd == "open" or cmd == "vim" or cmd == "edit":
@@ -97,8 +97,6 @@ def server_mv(source, dest):
   return "ACK"
 
 def server_cat(filename, crypto):
-  #TODO encryption
-
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
   checkexist = os.path.isfile(filename)
@@ -110,18 +108,23 @@ def server_cat(filename, crypto):
     encrypted = com.read()
     return crypto.aesdecrypt(vars.aeskey, encrypted)
 
-def server_mkdir(directory):
-  #TODO encryption
+def server_mkdir(directory, crypto):
   resulting = os.path.abspath(directory)
   result = checkInjection(resulting)
   if result is True:
     return "specified path does not exist"
 
+  splitdirectory = directory.split("/")
+  encrypted = []
+  for dir in splitdirectory:
+    if dir != '..' and dir != '.':
+      dir = crypto.aesencrypt(vars.aeskey, dir)
+    encrypted.append(dir)
+
+  print(encrypted)
+  directory = "/".join(encrypted)
+  print(directory)
   os.makedirs(directory)
-  filePerm(directory)
-  user = getUser()
-  isvalid =  checkUserandFilePerm("/Enzo/testinggod","R",user)
-  print(isvalid)
   return "ACK"
 
 def server_pwd():
