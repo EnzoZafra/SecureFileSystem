@@ -116,6 +116,9 @@ def server_mkdir(directory):
 
   os.makedirs(directory)
   filePerm(directory)
+  user = getUser()
+  isvalid =  checkUserandFilePerm("/Enzo/testinggod","R",user)
+  print(isvalid)
   return "ACK"
 
 def server_pwd():
@@ -219,7 +222,6 @@ def createUser(userId):
   file.write("\n" + userId)
   file.close()
   permission = "default"
-  print("before setUserPerm")
   setUserPerm(splitUserID[0],permission)
 
   os.makedirs(splitUserID[0])
@@ -253,10 +255,7 @@ def setUserPerm(userId, Perm):
     for line in mylist:
       splitLine = line.split(" ")
       if(userId == splitLine[0]):
-        newLine = userId + " " + Perm + "\n"
-        line = line.replace(splitLine,newLine)
-        fp.write(line)
-        print("user FOUND")
+        print("user ALREADY EXIST FOUND")
         UserExist = True
         break
   if(UserExist == False):
@@ -268,15 +267,12 @@ def filePerm(fileName):
   passpath = vars.realpath + "/rootdir/etc/filePerm"
   file = open(passpath,"a")
   currUser = getUser()
-  #print(os.getcwd())
-  #print(vars.realpath)
   fiePath = getFilePath()
   fileDir = fiePath + fileName
   owner = "RW"
   group = "N"
   other = "N"
   fileperm = fileDir + " " + owner + "," + group +","+other +" " + currUser
-  print(fileperm)
   file.write(fileperm + "\n")
   file.close  
 
@@ -304,3 +300,83 @@ def getFilePath():
     if(rootpathFound == True):
       rootpath =  rootpath + splitPath[i] + "/"
   return rootpath
+
+def checkUserandFilePerm(filepath,cmd,currUser):
+  myFilePerm = grabFilePerm(filepath)
+  currUserPerm = getUserPerm(currUser)
+  owner = grabOwnerofFile(filepath)
+  ownerPerm = getUserPerm(owner)
+  myFilePermSplit = myFilePerm.split(",")
+  fileOwnerPerm = myFilePermSplit[0]
+  fileGroupPerm = myFilePermSplit[1]
+  fileOtherPerm = myFilePermSplit[2]
+  valid = False
+  if(fileOtherPerm == "N"):
+    if(currUserPerm == ownerPerm):
+      if(fileGroupPerm == "RW"):
+        if(cmd == "R"):
+          valid = True
+        if(cmd == "W"):
+          valid = True
+      if(fileGroupPerm == "R"):
+        if(cmd == "R"):
+          valid = True
+        else:
+          valid = False
+  else:
+    if(fileOtherPerm == "RW"):
+      if(cmd == "R"):
+        valid = True
+      if(cmd == "W"):
+        valid = True
+    if(fileOtherPerm == "R"):
+      if(cmd == "R"):
+        valid = True
+      else:
+        valid = False
+  return valid
+
+def grabFilePerm(filepath):
+  passpath = vars.realpath + "/rootdir/etc/filePerm"
+  file = open(passpath,"r+")
+  filePermision = ""
+  with open(passpath) as fp:
+        mylist = fp.read().splitlines()
+        for line in mylist:
+          splitLine = line.split(" ")
+          if(filepath == splitLine[0]):
+            filePermision = splitLine[1]
+  file.close()
+  return filePermision
+
+def getUserPerm(User):
+  print(User)
+  passpath = vars.realpath + "/rootdir/etc/permissions"
+  currUserPerm = ""
+  file = open(passpath,"r+")
+  with open(passpath) as fp:
+    mylist = fp.read().splitlines()
+    for line in mylist:
+      splitLine = line.split(" ")
+      if(splitLine[0] == User ):
+        currUserPerm = splitLine[1]
+  file.close()
+  return currUserPerm
+
+def grabOwnerofFile(filepath):
+  passpath = vars.realpath + "/rootdir/etc/filePerm"
+  file = open(passpath,"r+")
+  owner = ""
+  with open(passpath) as fp:
+        mylist = fp.read().splitlines()
+        for line in mylist:
+          splitLine = line.split(" ")
+          if(filepath == splitLine[0]):
+            owner = splitLine[2]
+  file.close()
+  return owner
+
+#TO FIX when prompt to login make sure that the input is a 1 or 2 
+
+
+
