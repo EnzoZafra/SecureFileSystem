@@ -71,31 +71,36 @@ def server_cd(directory):
 
 def server_mv(source, dest):
   #TODO encryption
+  basepath,filepath = getFilePath(source)
+  basepath_dest,filepath_dest = getFilePath(dest)
+  isValidSource = checkUserandFilePerm(filepath,"W",vars.user)
+  isValidDest = checkUserandFilePerm(filepath_dest,"W",vars.user)
+  if isValidDest and isValidSource == True:
+    if source[0] == '/':
+      sourcepath = vars.realpath + "/rootdir" + source
+    else:
+      sourcepath = os.getcwd() + "/" + source
 
-  if source[0] == '/':
-    sourcepath = vars.realpath + "/rootdir" + source
+    if dest[0] == '/':
+      destpath = vars.realpath + "/rootdir" + dest
+    else:
+      destpath = os.getcwd() + "/" + dest
+
+
+    resulting = os.path.abspath(sourcepath)
+    result = checkInjection(resulting)
+    if result is True:
+      return "specified source does not exist"
+
+    resulting = os.path.abspath(destpath)
+    result = checkInjection(resulting)
+    if result is True:
+      return "specified destination does not exist"
+
+    shutil.move(sourcepath, destpath)
+    return "ACK"
   else:
-    sourcepath = os.getcwd() + "/" + source
-
-  if dest[0] == '/':
-    destpath = vars.realpath + "/rootdir" + dest
-  else:
-    destpath = os.getcwd() + "/" + dest
-
-
-  resulting = os.path.abspath(sourcepath)
-  result = checkInjection(resulting)
-  if result is True:
-    return "specified source does not exist"
-
-  resulting = os.path.abspath(destpath)
-  result = checkInjection(resulting)
-  if result is True:
-    return "specified destination does not exist"
-
-  shutil.move(sourcepath, destpath)
-  return "ACK"
-
+    return "you do not have permission"
 def server_cat(filename, crypto):
   #TODO encryption
   resulting = os.path.abspath(filename)
@@ -138,6 +143,7 @@ def server_logout(server, acceptor):
   server.sockets.remove(acceptor)
   vars.loggedin = False
   server_cd(vars.realpath + "/" + ROOT_DIR)
+  vars.user = None
   return "LOGOUT"
 
 def server_open(filename, scontroller, acceptor):
@@ -281,17 +287,6 @@ def filePerm(fileName):
   file.write(fileperm + "\n")
   file.close
 
-def getUser():
-  path = os.getcwd()
-  splitPath = path.split("/")
-  lengthSplitPath = len(splitPath)
-  userId = ""
-  for i in range(0,lengthSplitPath):
-    if(splitPath[i] == "rootdir"):
-      userId = splitPath[i + 1]
-      break
-  return userId
-
 def getFilePath(fileName):
   path = os.getcwd()
   splitPath = path.split("/")
@@ -309,7 +304,9 @@ def getFilePath(fileName):
   return basepath,newpath
 
 def checkUserandFilePerm(filepath,cmd,currUser):
+  print(filepath)
   owner,myFilePerm = grabFilePerm(filepath)
+  print(myFilePerm)
   currUserGroup = getGroup(currUser)
   ownerGroup = getGroup(owner)
   valid = False
