@@ -18,6 +18,8 @@ class Server:
     self.sockets = []
     self.scontroller = SocketController()
     self.server = self.scontroller.connServer(self.host, self.port)
+    self.logins = {}
+
     vars.init()
     init()
     # Trap keyboard interrupts

@@ -72,30 +72,36 @@ def server_cd(directory):
 def server_mv(source, dest):
   #TODO encryption
 
-  if source[0] == '/':
-    sourcepath = vars.realpath + "/rootdir" + source
+  basedir,filepath = getFilePath(source)
+  print("the currentlogged in user is: ")
+  print(vars.user)
+  doesUserHavePerm  = checkUserandFilePerm(filepath,"W",vars.user)
+  if doesUserHavePerm == True:
+    if source[0] == '/':
+      sourcepath = vars.realpath + "/rootdir" + source
+    else:
+      sourcepath = os.getcwd() + "/" + source
+
+    if dest[0] == '/':
+      destpath = vars.realpath + "/rootdir" + dest
+    else:
+      destpath = os.getcwd() + "/" + dest
+
+
+    resulting = os.path.abspath(sourcepath)
+    result = checkInjection(resulting)
+    if result is True:
+      return "specified source does not exist"
+
+    resulting = os.path.abspath(destpath)
+    result = checkInjection(resulting)
+    if result is True:
+      return "specified destination does not exist"
+
+    shutil.move(sourcepath, destpath)
+    return "ACK"
   else:
-    sourcepath = os.getcwd() + "/" + source
-
-  if dest[0] == '/':
-    destpath = vars.realpath + "/rootdir" + dest
-  else:
-    destpath = os.getcwd() + "/" + dest
-
-
-  resulting = os.path.abspath(sourcepath)
-  result = checkInjection(resulting)
-  if result is True:
-    return "specified source does not exist"
-
-  resulting = os.path.abspath(destpath)
-  result = checkInjection(resulting)
-  if result is True:
-    return "specified destination does not exist"
-
-  shutil.move(sourcepath, destpath)
-  return "ACK"
-
+    return "you do not have permission"
 def server_cat(filename):
   #TODO encryption
   resulting = os.path.abspath(filename)
@@ -105,7 +111,7 @@ def server_cat(filename):
   else:
     basedir,filepath = getFilePath(filename)
     currUser = getUser()
-    doesUserHavePerm = checkUserandFilePerm(filepath,"R",currUser)
+    doesUserHavePerm = checkUserandFilePerm(filepath,"R",vars.user)
     if doesUserHavePerm == True:
       with open(filename, 'rb') as com:
         return com.read()
@@ -119,13 +125,18 @@ def server_mkdir(directory):
   print(getFilePath(directory))
   if result is True:
     return "specified path does not exist"
-
-  os.makedirs(directory)
-  filePerm(directory)
-  return "ACK"
-
+  basedir,filepath = getFilePath(directory)
+  doesUserHavePerm = checkUserandFilePerm(basedir,"W",vars.user)
+  if doesUserHavePerm == True:
+    os.makedirs(directory)
+    filePerm(directory)
+    return "ACK"
+  else:
+    return "you do not have permission"
+    
 def server_pwd():
   #TODO encryption
+  print(server.login)
   workingdir = os.getcwd()
   return workingdir.replace(vars.realpath, '')
 
@@ -149,8 +160,7 @@ def server_open(filename, scontroller, acceptor):
     scontroller.send(acceptor, response)
   else:
     basedir,filepath = getFilePath(filename)
-    currUser = getUser()
-    doesUserHavePerm = checkUserandFilePerm(filepath,"W",currUser)
+    doesUserHavePerm = checkUserandFilePerm(basedir,"W",vars.user)
     if(doesUserHavePerm == True):
       response = "READY_SEND"
       response = "READY_SEND|" + filename
@@ -190,6 +200,7 @@ def server_login(userInfo):
   vars.loggedin = verify(userInfo)
   if vars.loggedin:
     os.chdir(userInfo.split()[0])
+    vars.user = userInfo.split()[0]
     return "LOGIN_SUCCESS"
   else:
     return "LOGIN_FAIL"
@@ -198,6 +209,7 @@ def server_register(userInfo):
   taken = userNameTaken(userInfo.split()[0])
   if not taken:
     createUser(userInfo)
+    createBaseUserPerm(userInfo.split()[0])
     return "REG_SUCCESS"
   else:
     return "REG_FAIL"
@@ -233,7 +245,6 @@ def createUser(userId):
   permission = "default"
   setUserPerm(splitUserID[0],permission)
   os.makedirs(splitUserID[0])
-  filePerm(splitUserID[0])
 
 def userNameTaken(userID):
   passpath = vars.realpath + "/rootdir/etc/passwd"
@@ -275,18 +286,16 @@ def setUserPerm(userId, Perm):
 def filePerm(fileName):
   passpath = vars.realpath + "/rootdir/etc/filePerm"
   file = open(passpath,"a")
-  currUser = getUser()
   basedir,fileDir = getFilePath(fileName)
   owner = "RW"
   group = "N"
   other = "N"
-  fileperm = fileDir + " " + owner + "," + group +","+other +" " + currUser
+  fileperm = fileDir + " " + owner + "," + group +","+other +" " + vars.user
   file.write(fileperm + "\n")
   file.close  
 
 def getUser():
   path = os.getcwd()
-  print(path)
   splitPath = path.split("/")
   lengthSplitPath = len(splitPath)
   userId = ""
@@ -309,7 +318,7 @@ def getFilePath(fileName):
     if(rootpathFound == True):
       rootpath =  rootpath + splitPath[i] + "/"
   newpath = rootpath + fileName
-  basepath = rootpath
+  basepath = rootpath[:-1]
   return basepath,newpath
 
 def checkUserandFilePerm(filepath,cmd,currUser):
@@ -349,7 +358,6 @@ def grabFilePerm(filepath):
   return owner,filePermision
 
 def getGroup(User):
-  print(User)
   passpath = vars.realpath + "/rootdir/etc/groups"
   currUserPerm = ""
   file = open(passpath,"r+")
@@ -362,6 +370,15 @@ def getGroup(User):
   file.close()
   return currUserPerm
 
+def createBaseUserPerm(User):
+  passpath = vars.realpath + "/rootdir/etc/filePerm"
+  file = open(passpath,"a")
+  owner = "RW"
+  group = "N"
+  other = "N"
+  fileperm = "/"+User + " " + owner + "," + group +","+other +" " + User
+  file.write(fileperm + "\n")
+  file.close  
 
 #TO FIX when prompt to login make sure that the input is a 1 or 2 
 
