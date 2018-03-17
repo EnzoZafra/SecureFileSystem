@@ -5,7 +5,7 @@ import sys
 import os
 import select
 import subprocess
-from clientFunctions import parseCommand, init, acceptFile
+from clientFunctions import parseCommand, init
 from controllers.CryptoController import *
 from controllers.SocketController import *
 
@@ -69,21 +69,31 @@ class Client:
             serverResponse = self.scontroller.receive(self.sock)
 
             if (serverResponse != "ACK"):
-              if (serverResponse == "READY_SEND"):
+              tmp = serverResponse.split("|")
+              if (tmp[0] == "READY_SEND"):
                 self.scontroller.send(self.sock, "CLIENT_READY")
-                filepath = acceptFile(self.sock)
+                filename = tmp[1]
+                filepath = "tmpcache/" + filename
+                self.scontroller.acceptFile(self.sock, filepath)
                 serverResponse = self.scontroller.receive(self.sock)
                 subprocess.Popen("vi " + filepath, shell=True).wait()
-                #TODO: send file back and then delete from client
 
-              elif (serverResponse == "READY_EDIT"):
-                serverResponse = self.scontroller.receive(self.sock)
+                #TODO: send file back and then delete from client
+                self.scontroller.send(self.sock, "acceptfile|" + filename)
+                self.scontroller.sendFile(self.sock, filepath)
+
+              elif (tmp[0] == "READY_EDIT"):
+                # serverResponse = self.scontroller.receive(self.sock)
                 realpath = os.path.dirname(os.path.realpath(__file__))
-                cachepath = realpath + "/tmpcache/tmp"
+                filename = tmp[1]
+                cachepath = realpath + "/tmpcache/" + filename
                 subprocess.Popen("vi " + cachepath, shell=True).wait()
-                #TODO: send file back and then delete from client
 
-              elif (serverResponse == "LOGOUT"):
+                #TODO: send file back and then delete from client
+                self.scontroller.send(self.sock, "acceptfile|" + filename)
+                self.scontroller.sendFile(self.sock, cachepath)
+
+              elif (tmp[0] == "LOGOUT"):
                 signedIn = False
 
               else:

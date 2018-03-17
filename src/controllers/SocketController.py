@@ -52,3 +52,18 @@ class SocketController:
     server.connect((host,port))
     return server
 
+  def sendFile(self, socket, filename):
+    #TODO encryption
+    f = open(filename, 'rb')
+    l = f.read()
+    self.send(socket, l)
+    f.close()
+
+  def acceptFile(self, socket, filepath):
+    #TODO decryption
+    with open(filepath, 'wb') as f:
+      data = self.receive(socket)
+      f.write(data)
+    f.close()
+    return filepath
+

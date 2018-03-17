@@ -93,12 +93,3 @@ def init():
   clientpath = "tmpcache/"
   if not os.path.isdir(clientpath):
     os.makedirs(clientpath)
-
-def acceptFile(receiver):
-  #TODO decryption
-  filename = "tmpcache/tmp"
-  with open(filename, 'wb') as f:
-    data = receiver.scontroller.receive(receiver.sock)
-    f.write(data)
-  f.close()
-  return filename

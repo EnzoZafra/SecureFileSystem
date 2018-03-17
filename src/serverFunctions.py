@@ -36,6 +36,8 @@ def parseCommand(cmd, server, acceptor):
     elif cmd == "chmod":
       #TODO add params
       response = server_chmod()
+    elif cmd == "acceptfile":
+      response = server_acceptfile(splitCmd[1], server.scontroller, acceptor)
   return response
 
 def server_ls(path):
@@ -127,18 +129,24 @@ def server_logout(server, acceptor):
 
 def server_open(filename, scontroller, acceptor):
   #TODO encryption
-  #TODO check path of filename
+
+  resulting = os.path.abspath(filename)
+  result = checkInjection(resulting)
+  if result is True:
+    return "specified path does not exist"
+
   if not os.path.exists(filename):
-    response = "READY_EDIT"
+    response = "READY_EDIT|" + filename
     scontroller.send(acceptor, response)
   else:
     response = "READY_SEND"
+    response = "READY_SEND|" + filename
     scontroller.send(acceptor, response)
 
     # wait for client to get ready to accept file
     resp = scontroller.receive(acceptor)
     if (resp == "CLIENT_READY"):
-      sendFile(scontroller, acceptor, filename)
+      scontroller.sendFile(acceptor, filename)
   return "ACK"
 
 def server_chmod():
@@ -156,15 +164,6 @@ def init():
 
   server_cd(ROOT_DIR)
 
-def sendFile(scontroller, acceptor, filename):
-  #TODO encryption
-  f = open(filename,'rb')
-
-  l = f.read()
-  scontroller.send(acceptor, l)
-
-  f.close()
-
 def server_login(userInfo):
   vars.loggedin = verify(userInfo)
   if vars.loggedin:
@@ -180,6 +179,10 @@ def server_register(userInfo):
     return "REG_SUCCESS"
   else:
     return "REG_FAIL"
+
+def server_acceptfile(filename, scontroller, socket):
+  scontroller.acceptFile(socket, filename)
+  return "ACK"
 
 def verify(userId):
   splitUserID = userId.split()
