@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import vars
 import re
 import os
@@ -114,6 +115,7 @@ def server_mkdir(directory):
     return "specified path does not exist"
 
   os.makedirs(directory)
+  filePerm(directory)
   return "ACK"
 
 def server_pwd():
@@ -159,8 +161,15 @@ def init():
   if(not os.path.isdir(etcdir)):
     os.makedirs(etcdir)
 
+  if not os.path.exists(etcdir + "/permissions"):
+    with open(etcdir + "/permissions", 'w'):pass
+    
   if not os.path.exists(etcdir + "/passwd"):
     with open(etcdir + "/passwd", 'w'): pass
+  
+  if not os.path.exists(etcdir + "/filePerm"):
+    with open(etcdir + "/filePerm", 'w'): pass
+
 
   server_cd(ROOT_DIR)
 
@@ -208,6 +217,9 @@ def createUser(userId):
   file = open(passpath,"a")
   file.write("\n" + userId)
   file.close()
+  permission = "default"
+  print("before setUserPerm")
+  setUserPerm(splitUserID[0],permission)
 
   os.makedirs(splitUserID[0])
 
@@ -229,3 +241,63 @@ def checkInjection(path):
   if not match:
     return True
   return False
+
+def setUserPerm(userId, Perm):
+  splitUserId = userId.split()
+  passpath = vars.realpath + "/rootdir/etc/permissions"
+  file = open(passpath,"r+")
+  UserExist = False
+  with file as fp:
+    mylist = fp.read().splitlines()
+    for line in mylist:
+      splitLine = line.split(" ")
+      if(userId == splitLine[0]):
+        newLine = userId + " " + Perm + "\n"
+        line = line.replace(splitLine,newLine)
+        fp.write(line)
+        print("user FOUND")
+        UserExist = True
+        break
+  if(UserExist == False):
+    file = open(passpath,"a")
+    file.write(userId + " " + Perm + "\n")
+  file.close
+
+def filePerm(fileName):
+  passpath = vars.realpath + "/rootdir/etc/filePerm"
+  file = open(passpath,"a")
+  currUser = getUser()
+  #print(os.getcwd())
+  #print(vars.realpath)
+  fiePath = getFilePath()
+  fileDir = fiePath + fileName
+  owner = "RW"
+  group = "N"
+  other = "N"
+  fileperm = fileDir + " " + owner + "," + group +","+other +" " + currUser
+  print(fileperm)
+  file.write(fileperm + "\n")
+  file.close  
+
+def getUser():
+  path = os.getcwd()
+  splitPath = path.split("/")
+  lengthSplitPath = len(splitPath)
+  userId = ""
+  for i in range(0,lengthSplitPath):
+    if(splitPath[i] == "rootdir"):
+      userId = splitPath[i + 1]
+      break
+  return userId
+
+def getFilePath():
+  path = os.getcwd()
+  splitPath = path.split("/")
+  lengthSplitPath = len(splitPath)
+  rootpath = "/"
+  rootpathFound = False
+  for i in range(0,lengthSplitPath):
+    if(splitPath[i] == "rootdir" or rootpathFound == True):
+      rootpathFound  = True
+      rootpath =  rootpath + splitPath[i] + "/"
+  return rootpath
