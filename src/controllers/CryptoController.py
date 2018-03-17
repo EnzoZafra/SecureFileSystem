@@ -14,6 +14,7 @@ class CryptoController:
   def __init__(self):
     self.keysize = KEYSIZE
     self.bs = 32
+    self.iv = '47fb388f6fb0ae2492d5c08691131e2c'.decode('hex')
 
   def genAsymKeys(self):
     random = Random.new().read
@@ -40,23 +41,14 @@ class CryptoController:
     return cipher.decrypt(ciphertext)
 
   def aesencrypt(self, key, plaintext):
-    # message = self.pad(plaintext)
-    # iv = Random.new().read(AES.block_size)
-    # cipher = AES.new(key, AES.MODE_CBC, iv)
-    # return iv + cipher.encrypt(message)
     plaintext = self._pad(plaintext)
-    iv = Random.new().read(AES.block_size)
-    cipher = AES.new(key, AES.MODE_CBC, iv)
-    return base64.b64encode(iv + cipher.encrypt(plaintext))
+    cipher = AES.new(key, AES.MODE_CBC, self.iv)
+    return base64.b64encode(self.iv + cipher.encrypt(plaintext))
 
   def aesdecrypt(self, key, ciphertext):
-    # iv = ciphertext[:AES.block_size]
-    # cipher = AES.new(key, AES.MODE_CBC, iv)
-    # plaintext = cipher.decrypt(ciphertext[AES.block_size:])
-    # return plaintext.rstrip(b"\0")
     ciphertext = base64.b64decode(ciphertext)
-    iv = ciphertext[:AES.block_size]
-    cipher = AES.new(key, AES.MODE_CBC, iv)
+    self.iv = ciphertext[:AES.block_size]
+    cipher = AES.new(key, AES.MODE_CBC, self.iv)
     return self._unpad(cipher.decrypt(ciphertext[AES.block_size:])).decode('utf-8')
 
   def validateSignature(self, decrypted, pubkey, signature):

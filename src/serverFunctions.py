@@ -29,7 +29,7 @@ def parseCommand(cmd, server, acceptor):
     elif cmd == "mkdir":
       response = server_mkdir(splitCmd[1])
     elif cmd == "cat":
-      response = server_cat(splitCmd[1])
+      response = server_cat(splitCmd[1], server.crypto)
     elif cmd == "open" or cmd == "vim" or cmd == "edit":
       response = server_open(splitCmd[1], server.scontroller, acceptor)
     elif cmd == "logout":
@@ -96,16 +96,19 @@ def server_mv(source, dest):
   shutil.move(sourcepath, destpath)
   return "ACK"
 
-def server_cat(filename):
+def server_cat(filename, crypto):
   #TODO encryption
 
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
-  if result is True:
+  checkexist = os.path.isfile(filename)
+  if result is True or checkexist is not True:
     return "specified file does not exist"
 
+  print()
   with open(filename, 'rb') as com:
-    return com.read()
+    encrypted = com.read()
+    return crypto.aesdecrypt(vars.aeskey, encrypted)
 
 def server_mkdir(directory):
   #TODO encryption
@@ -122,7 +125,7 @@ def server_mkdir(directory):
   return "ACK"
 
 def server_pwd():
-  #TODO encryption
+  #TODO encryption have to split and decrypt each hash
   workingdir = os.getcwd()
   return workingdir.replace(vars.realpath, '')
 

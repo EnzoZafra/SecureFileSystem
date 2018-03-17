@@ -19,7 +19,6 @@ class Server:
     vars.init()
     vars.keypair = self.crypto.genAsymKeys()
     vars.aeskey = self.crypto.genAesKey(pw)
-    print(sys.getsizeof(vars.aeskey))
     init()
     # Trap keyboard interrupts
     signal.signal(signal.SIGINT, self.sighandler)
