@@ -8,19 +8,17 @@ import vars
 from serverFunctions import parseCommand, init
 from controllers.SocketController import *
 
-# define constants
-MAX_BYTE = 1024
-
 class Server:
-  def __init__(self, host, port):
+  def __init__(self, host, port, pw):
     self.host = host
     self.port = port
     self.sockets = []
     self.scontroller = SocketController()
+    self.crypto = CryptoController()
     self.server = self.scontroller.connServer(self.host, self.port)
-    self.logins = {}
-
     vars.init()
+    vars.keypair = self.crypto.genAsymKeys()
+    vars.aeskey = self.crypto.genAesKey(pw)
     init()
     # Trap keyboard interrupts
     signal.signal(signal.SIGINT, self.sighandler)
@@ -33,6 +31,15 @@ class Server:
     for socket in self.sockets:
         socket.close()
     self.server.close()
+
+  def exchangeKey(self, client):
+    # send my public
+    exportpub = vars.keypair.publickey().exportKey()
+    self.scontroller.pubsend(client, exportpub)
+
+    # accept their public
+    importpub = self.scontroller.pubreceive(client)
+    vars.pubkeys[client] = self.crypto.importKey(importpub)
 
   def serve(self):
     inputs = [self.server, sys.stdin]
@@ -52,6 +59,7 @@ class Server:
           print("connected from: ", address)
           inputs.append(client)
           self.sockets.append(client)
+          self.exchangeKey(client)
         elif s == sys.stdin:
           # handle standard input
           junk = sys.stdin.readline()
@@ -59,22 +67,23 @@ class Server:
 
       # event from sockets
         else:
-          cmd = self.scontroller.receive(s)
+          cmd = self.scontroller.receive(s, vars.keypair)
           response = parseCommand(cmd, self, s)
           if (response is not ""):
-            self.scontroller.send(s, response)
+            self.scontroller.send(s, vars.pubkeys[s], response)
 
     self.server.close()
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-      print("usage: python server.py [portnumber]")
-      exit()
+  if len(sys.argv) < 2:
+    print("usage: python server.py [portnumber]")
+    exit()
 
-    host = ''
-    port = int(sys.argv[1])
-    if port > 49151 or port < 1024:
-      print("error: portnumber must be an integer between 1024-49151")
-      exit()
+  host = ''
+  port = int(sys.argv[1])
+  if port > 49151 or port < 1024:
+    print("error: portnumber must be an integer between 1024-49151")
+    exit()
 
-    Server(host, port).serve()
+  pw = raw_input("Enter server password: ")
+  Server(host, port, pw).serve()

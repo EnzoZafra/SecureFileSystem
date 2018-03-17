@@ -29,7 +29,7 @@ def parseCommand(cmd, server, acceptor):
     elif cmd == "mkdir":
       response = server_mkdir(splitCmd[1])
     elif cmd == "cat":
-      response = server_cat(splitCmd[1])
+      response = server_cat(splitCmd[1], server.crypto)
     elif cmd == "open" or cmd == "vim" or cmd == "edit":
       response = server_open(splitCmd[1], server.scontroller, acceptor)
     elif cmd == "logout":
@@ -72,49 +72,44 @@ def server_cd(directory):
 def server_mv(source, dest):
   #TODO encryption
 
-  basedir,filepath = getFilePath(source)
-  print("the currentlogged in user is: ")
-  print(vars.user)
-  doesUserHavePerm  = checkUserandFilePerm(filepath,"W",vars.user)
-  if doesUserHavePerm == True:
-    if source[0] == '/':
-      sourcepath = vars.realpath + "/rootdir" + source
-    else:
-      sourcepath = os.getcwd() + "/" + source
-
-    if dest[0] == '/':
-      destpath = vars.realpath + "/rootdir" + dest
-    else:
-      destpath = os.getcwd() + "/" + dest
-
-
-    resulting = os.path.abspath(sourcepath)
-    result = checkInjection(resulting)
-    if result is True:
-      return "specified source does not exist"
-
-    resulting = os.path.abspath(destpath)
-    result = checkInjection(resulting)
-    if result is True:
-      return "specified destination does not exist"
-
-    shutil.move(sourcepath, destpath)
-    return "ACK"
+  if source[0] == '/':
+    sourcepath = vars.realpath + "/rootdir" + source
   else:
-    return "you do not have permission"
-def server_cat(filename):
+    sourcepath = os.getcwd() + "/" + source
+
+  if dest[0] == '/':
+    destpath = vars.realpath + "/rootdir" + dest
+  else:
+    destpath = os.getcwd() + "/" + dest
+
+
+  resulting = os.path.abspath(sourcepath)
+  result = checkInjection(resulting)
+  if result is True:
+    return "specified source does not exist"
+
+  resulting = os.path.abspath(destpath)
+  result = checkInjection(resulting)
+  if result is True:
+    return "specified destination does not exist"
+
+  shutil.move(sourcepath, destpath)
+  return "ACK"
+
+def server_cat(filename, crypto):
   #TODO encryption
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
-  if result is True:
+  checkexist = os.path.isfile(filename)
+  if result is True or checkexist is not True:
     return "specified file does not exist"
   else:
     basedir,filepath = getFilePath(filename)
-    currUser = getUser()
     doesUserHavePerm = checkUserandFilePerm(filepath,"R",vars.user)
     if doesUserHavePerm == True:
       with open(filename, 'rb') as com:
-        return com.read()
+        encrypted = com.read()
+        return crypto.aesdecrypt(vars.aeskey, encrypted)
     else:
       return "you do not have permission"
 
@@ -135,8 +130,7 @@ def server_mkdir(directory):
     return "you do not have permission"
     
 def server_pwd():
-  #TODO encryption
-  print(server.login)
+  #TODO encryption have to split and decrypt each hash
   workingdir = os.getcwd()
   return workingdir.replace(vars.realpath, '')
 
@@ -147,8 +141,6 @@ def server_logout(server, acceptor):
   return "LOGOUT"
 
 def server_open(filename, scontroller, acceptor):
-  #TODO encryption
-
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
   if result is True:
@@ -156,24 +148,18 @@ def server_open(filename, scontroller, acceptor):
 
   if not os.path.exists(filename):
     response = "READY_EDIT|" + filename
-    filePerm(filename)
-    scontroller.send(acceptor, response)
+    scontroller.send(acceptor, vars.pubkeys[acceptor], response)
   else:
-    basedir,filepath = getFilePath(filename)
-    doesUserHavePerm = checkUserandFilePerm(basedir,"W",vars.user)
-    if(doesUserHavePerm == True):
-      response = "READY_SEND"
-      response = "READY_SEND|" + filename
-      scontroller.send(acceptor, response)
-      
-      # wait for client to get ready to accept file
-      resp = scontroller.receive(acceptor)
-      if (resp == "CLIENT_READY"):
-        scontroller.sendFile(acceptor, filename)
-    else:
-      return "you do not have permission"
-  
+    response = "READY_SEND"
+    response = "READY_SEND|" + filename
+    scontroller.send(acceptor, vars.pubkeys[acceptor], response)
+
+    # wait for client to get ready to accept file
+    resp = scontroller.receive(acceptor, vars.keypair)
+    if (resp == "CLIENT_READY"):
+      scontroller.serverSendFile(acceptor, vars.pubkeys[acceptor], filename, vars.aeskey)
   return "ACK"
+
 
 def server_chmod():
   #TODO
@@ -189,7 +175,7 @@ def init():
     
   if not os.path.exists(etcdir + "/passwd"):
     with open(etcdir + "/passwd", 'w'): pass
-  
+
   if not os.path.exists(etcdir + "/filePerm"):
     with open(etcdir + "/filePerm", 'w'): pass
 
@@ -215,7 +201,8 @@ def server_register(userInfo):
     return "REG_FAIL"
 
 def server_acceptfile(filename, scontroller, socket):
-  scontroller.acceptFile(socket, filename)
+  scontroller.serverAcceptFile(socket, vars.keypair, filename, vars.aeskey)
+  filePerm(filename)
   return "ACK"
 
 def verify(userId):
@@ -292,7 +279,7 @@ def filePerm(fileName):
   other = "N"
   fileperm = fileDir + " " + owner + "," + group +","+other +" " + vars.user
   file.write(fileperm + "\n")
-  file.close  
+  file.close
 
 def getUser():
   path = os.getcwd()
@@ -380,7 +367,7 @@ def createBaseUserPerm(User):
   file.write(fileperm + "\n")
   file.close  
 
-#TO FIX when prompt to login make sure that the input is a 1 or 2 
+#TO FIX when prompt to login make sure that the input is a 1 or 2
 
 
 
