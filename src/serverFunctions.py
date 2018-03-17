@@ -18,7 +18,7 @@ def parseCommand(cmd, server, acceptor):
       response = server_register(splitCmd[1])
   else :
     if cmd == "ls":
-      response = server_ls(splitCmd[1])
+      response = server_ls(server.crypto, splitCmd[1])
     elif cmd == "cd":
       response = server_cd(splitCmd[1])
     elif cmd == "mv" or cmd == "move":
@@ -41,10 +41,22 @@ def parseCommand(cmd, server, acceptor):
       response = server_acceptfile(splitCmd[1], server.scontroller, acceptor)
   return response
 
-def server_ls(path):
-  #TODO encryption
+def encryptpath(crypto, path):
+  splitpath = path.split("/")
+  encrypted = []
+  for dir in splitpath:
+    if dir != '..' and dir != '.':
+      dir = crypto.aesencrypt(vars.aeskey, dir)
+    encrypted.append(dir)
+
+  return "/".join(encrypted)
+
+def server_ls(crypto, path):
+
   if path == '':
     path = os.getcwd()
+  else:
+    path = encryptpath(crypto, path)
 
   resulting = os.path.abspath(path)
   result = checkInjection(resulting)
@@ -52,11 +64,17 @@ def server_ls(path):
     return "specified path does not exist"
 
   list = os.listdir(path)
-
   if len(list) == 0:
     return ' '
 
-  return '%s' % ' '.join(map(str, list))
+  decrypted = []
+  for i in list:
+    if i[0] == '.':
+      continue
+    dir = crypto.aesdecrypt(vars.aeskey, i)
+    decrypted.append(dir)
+
+  return '%s' % ' '.join(map(str, decrypted))
 
 def server_cd(directory):
   #TODO encryption
@@ -102,15 +120,20 @@ def server_cat(filename, crypto):
   checkexist = os.path.isfile(filename)
   if result is True or checkexist is not True:
     return "specified file does not exist"
-
-  print()
-  with open(filename, 'rb') as com:
-    encrypted = com.read()
-    return crypto.aesdecrypt(vars.aeskey, encrypted)
+  else:
+    basedir,filepath = getFilePath(filename)
+    doesUserHavePerm = checkUserandFilePerm(filepath,"R",vars.user)
+    if doesUserHavePerm == True:
+      with open(filename, 'rb') as com:
+        encrypted = com.read()
+        return crypto.aesdecrypt(vars.aeskey, encrypted)
+    else:
+      return "you do not have permission"
 
 def server_mkdir(directory, crypto):
   resulting = os.path.abspath(directory)
   result = checkInjection(resulting)
+  print(getFilePath(directory))
   if result is True:
     return "specified path does not exist"
 
@@ -121,11 +144,15 @@ def server_mkdir(directory, crypto):
       dir = crypto.aesencrypt(vars.aeskey, dir)
     encrypted.append(dir)
 
-  print(encrypted)
   directory = "/".join(encrypted)
-  print(directory)
-  os.makedirs(directory)
-  return "ACK"
+  basedir,filepath = getFilePath(directory)
+  doesUserHavePerm = checkUserandFilePerm(basedir,"W",vars.user)
+  if doesUserHavePerm == True:
+    os.makedirs(directory)
+    filePerm(directory)
+    return "ACK"
+  else:
+    return "you do not have permission"
 
 def server_pwd():
   #TODO encryption have to split and decrypt each hash
@@ -158,6 +185,7 @@ def server_open(filename, scontroller, acceptor):
       scontroller.serverSendFile(acceptor, vars.pubkeys[acceptor], filename, vars.aeskey)
   return "ACK"
 
+
 def server_chmod():
   #TODO
   print("To be implemented")
@@ -167,9 +195,8 @@ def init():
   etcdir = ROOT_DIR + "/etc"
   if(not os.path.isdir(etcdir)):
     os.makedirs(etcdir)
-
-  if not os.path.exists(etcdir + "/permissions"):
-    with open(etcdir + "/permissions", 'w'):pass
+  if not os.path.exists(etcdir + "/groups"):
+    with open(etcdir + "/groups", 'w'):pass
 
   if not os.path.exists(etcdir + "/passwd"):
     with open(etcdir + "/passwd", 'w'): pass
@@ -184,6 +211,7 @@ def server_login(userInfo):
   vars.loggedin = verify(userInfo)
   if vars.loggedin:
     os.chdir(userInfo.split()[0])
+    vars.user = userInfo.split()[0]
     return "LOGIN_SUCCESS"
   else:
     return "LOGIN_FAIL"
@@ -192,6 +220,7 @@ def server_register(userInfo):
   taken = userNameTaken(userInfo.split()[0])
   if not taken:
     createUser(userInfo)
+    createBaseUserPerm(userInfo.split()[0])
     return "REG_SUCCESS"
   else:
     return "REG_FAIL"
@@ -227,7 +256,6 @@ def createUser(userId):
   file.close()
   permission = "default"
   setUserPerm(splitUserID[0],permission)
-
   os.makedirs(splitUserID[0])
 
 def userNameTaken(userID):
@@ -251,7 +279,7 @@ def checkInjection(path):
 
 def setUserPerm(userId, Perm):
   splitUserId = userId.split()
-  passpath = vars.realpath + "/rootdir/etc/permissions"
+  passpath = vars.realpath + "/rootdir/etc/groups"
   file = open(passpath,"r+")
   UserExist = False
   with file as fp:
@@ -270,13 +298,11 @@ def setUserPerm(userId, Perm):
 def filePerm(fileName):
   passpath = vars.realpath + "/rootdir/etc/filePerm"
   file = open(passpath,"a")
-  currUser = getUser()
-  fiePath = getFilePath()
-  fileDir = fiePath + fileName
+  basedir,fileDir = getFilePath(fileName)
   owner = "RW"
   group = "N"
   other = "N"
-  fileperm = fileDir + " " + owner + "," + group +","+other +" " + currUser
+  fileperm = fileDir + " " + owner + "," + group +","+other +" " + vars.user
   file.write(fileperm + "\n")
   file.close
 
@@ -291,7 +317,7 @@ def getUser():
       break
   return userId
 
-def getFilePath():
+def getFilePath(fileName):
   path = os.getcwd()
   splitPath = path.split("/")
   lengthSplitPath = len(splitPath)
@@ -303,59 +329,48 @@ def getFilePath():
       continue
     if(rootpathFound == True):
       rootpath =  rootpath + splitPath[i] + "/"
-  return rootpath
+  newpath = rootpath + fileName
+  basepath = rootpath[:-1]
+  return basepath,newpath
 
 def checkUserandFilePerm(filepath,cmd,currUser):
-  myFilePerm = grabFilePerm(filepath)
-  currUserPerm = getUserPerm(currUser)
-  owner = grabOwnerofFile(filepath)
-  ownerPerm = getUserPerm(owner)
+  owner,myFilePerm = grabFilePerm(filepath)
+  currUserGroup = getGroup(currUser)
+  ownerGroup = getGroup(owner)
+  valid = False
   myFilePermSplit = myFilePerm.split(",")
   fileOwnerPerm = myFilePermSplit[0]
   fileGroupPerm = myFilePermSplit[1]
   fileOtherPerm = myFilePermSplit[2]
-  valid = False
-  if(fileOtherPerm == "N"):
-    if(currUserPerm == ownerPerm):
-      if(fileGroupPerm == "RW"):
-        if(cmd == "R"):
-          valid = True
-        if(cmd == "W"):
-          valid = True
-      if(fileGroupPerm == "R"):
-        if(cmd == "R"):
-          valid = True
-        else:
-          valid = False
+  if(currUser == owner):
+    if(cmd in fileOwnerPerm):
+      valid = True
+  elif(fileOtherPerm == "N"):
+    if(currUserGroup == ownerGroup):
+      if(cmd in fileGroupPerm):
+        valid = True
   else:
-    if(fileOtherPerm == "RW"):
-      if(cmd == "R"):
+      if(cmd in "RW"):
         valid = True
-      if(cmd == "W"):
-        valid = True
-    if(fileOtherPerm == "R"):
-      if(cmd == "R"):
-        valid = True
-      else:
-        valid = False
   return valid
 
 def grabFilePerm(filepath):
   passpath = vars.realpath + "/rootdir/etc/filePerm"
   file = open(passpath,"r+")
   filePermision = ""
+  owner = ""
   with open(passpath) as fp:
         mylist = fp.read().splitlines()
         for line in mylist:
           splitLine = line.split(" ")
           if(filepath == splitLine[0]):
             filePermision = splitLine[1]
+            owner = splitLine[2]
   file.close()
-  return filePermision
+  return owner,filePermision
 
-def getUserPerm(User):
-  print(User)
-  passpath = vars.realpath + "/rootdir/etc/permissions"
+def getGroup(User):
+  passpath = vars.realpath + "/rootdir/etc/groups"
   currUserPerm = ""
   file = open(passpath,"r+")
   with open(passpath) as fp:
@@ -367,18 +382,15 @@ def getUserPerm(User):
   file.close()
   return currUserPerm
 
-def grabOwnerofFile(filepath):
+def createBaseUserPerm(User):
   passpath = vars.realpath + "/rootdir/etc/filePerm"
-  file = open(passpath,"r+")
-  owner = ""
-  with open(passpath) as fp:
-        mylist = fp.read().splitlines()
-        for line in mylist:
-          splitLine = line.split(" ")
-          if(filepath == splitLine[0]):
-            owner = splitLine[2]
-  file.close()
-  return owner
+  file = open(passpath,"a")
+  owner = "RW"
+  group = "N"
+  other = "N"
+  fileperm = "/"+User + " " + owner + "," + group +","+other +" " + User
+  file.write(fileperm + "\n")
+  file.close
 
 #TO FIX when prompt to login make sure that the input is a 1 or 2
 
