@@ -98,27 +98,30 @@ def server_mv(source, dest):
 
 def server_cat(filename):
   #TODO encryption
-
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
   if result is True:
     return "specified file does not exist"
-
-  with open(filename, 'rb') as com:
-    return com.read()
+  else:
+    basedir,filepath = getFilePath(filename)
+    currUser = getUser()
+    doesUserHavePerm = checkUserandFilePerm(filepath,"R",currUser)
+    if doesUserHavePerm == True:
+      with open(filename, 'rb') as com:
+        return com.read()
+    else:
+      return "you do not have permission"
 
 def server_mkdir(directory):
   #TODO encryption
   resulting = os.path.abspath(directory)
   result = checkInjection(resulting)
+  print(getFilePath(directory))
   if result is True:
     return "specified path does not exist"
 
   os.makedirs(directory)
   filePerm(directory)
-  user = getUser()
-  isvalid =  checkUserandFilePerm("/Enzo/testinggod","R",user)
-  print(isvalid)
   return "ACK"
 
 def server_pwd():
@@ -142,16 +145,24 @@ def server_open(filename, scontroller, acceptor):
 
   if not os.path.exists(filename):
     response = "READY_EDIT|" + filename
+    filePerm(filename)
     scontroller.send(acceptor, response)
   else:
-    response = "READY_SEND"
-    response = "READY_SEND|" + filename
-    scontroller.send(acceptor, response)
-
-    # wait for client to get ready to accept file
-    resp = scontroller.receive(acceptor)
-    if (resp == "CLIENT_READY"):
-      scontroller.sendFile(acceptor, filename)
+    basedir,filepath = getFilePath(filename)
+    currUser = getUser()
+    doesUserHavePerm = checkUserandFilePerm(filepath,"W",currUser)
+    if(doesUserHavePerm == True):
+      response = "READY_SEND"
+      response = "READY_SEND|" + filename
+      scontroller.send(acceptor, response)
+      
+      # wait for client to get ready to accept file
+      resp = scontroller.receive(acceptor)
+      if (resp == "CLIENT_READY"):
+        scontroller.sendFile(acceptor, filename)
+    else:
+      return "you do not have permission"
+  
   return "ACK"
 
 def server_chmod():
@@ -163,9 +174,8 @@ def init():
   etcdir = ROOT_DIR + "/etc"
   if(not os.path.isdir(etcdir)):
     os.makedirs(etcdir)
-
-  if not os.path.exists(etcdir + "/permissions"):
-    with open(etcdir + "/permissions", 'w'):pass
+  if not os.path.exists(etcdir + "/groups"):
+    with open(etcdir + "/groups", 'w'):pass
     
   if not os.path.exists(etcdir + "/passwd"):
     with open(etcdir + "/passwd", 'w'): pass
@@ -194,7 +204,6 @@ def server_register(userInfo):
 
 def server_acceptfile(filename, scontroller, socket):
   scontroller.acceptFile(socket, filename)
-  filePerm(filename)
   return "ACK"
 
 def verify(userId):
@@ -223,8 +232,8 @@ def createUser(userId):
   file.close()
   permission = "default"
   setUserPerm(splitUserID[0],permission)
-
   os.makedirs(splitUserID[0])
+  filePerm(splitUserID[0])
 
 def userNameTaken(userID):
   passpath = vars.realpath + "/rootdir/etc/passwd"
@@ -247,7 +256,7 @@ def checkInjection(path):
 
 def setUserPerm(userId, Perm):
   splitUserId = userId.split()
-  passpath = vars.realpath + "/rootdir/etc/permissions"
+  passpath = vars.realpath + "/rootdir/etc/groups"
   file = open(passpath,"r+")
   UserExist = False
   with file as fp:
@@ -267,8 +276,7 @@ def filePerm(fileName):
   passpath = vars.realpath + "/rootdir/etc/filePerm"
   file = open(passpath,"a")
   currUser = getUser()
-  fiePath = getFilePath()
-  fileDir = fiePath + fileName
+  basedir,fileDir = getFilePath(fileName)
   owner = "RW"
   group = "N"
   other = "N"
@@ -278,6 +286,7 @@ def filePerm(fileName):
 
 def getUser():
   path = os.getcwd()
+  print(path)
   splitPath = path.split("/")
   lengthSplitPath = len(splitPath)
   userId = ""
@@ -287,7 +296,7 @@ def getUser():
       break
   return userId
 
-def getFilePath():
+def getFilePath(fileName):
   path = os.getcwd()
   splitPath = path.split("/")
   lengthSplitPath = len(splitPath)
@@ -299,59 +308,49 @@ def getFilePath():
       continue
     if(rootpathFound == True):
       rootpath =  rootpath + splitPath[i] + "/"
-  return rootpath
+  newpath = rootpath + fileName
+  basepath = rootpath
+  return basepath,newpath
 
 def checkUserandFilePerm(filepath,cmd,currUser):
-  myFilePerm = grabFilePerm(filepath)
-  currUserPerm = getUserPerm(currUser)
-  owner = grabOwnerofFile(filepath)
-  ownerPerm = getUserPerm(owner)
+  owner,myFilePerm = grabFilePerm(filepath)
+  currUserGroup = getGroup(currUser)
+  ownerGroup = getGroup(owner)
+  valid = False
   myFilePermSplit = myFilePerm.split(",")
   fileOwnerPerm = myFilePermSplit[0]
   fileGroupPerm = myFilePermSplit[1]
   fileOtherPerm = myFilePermSplit[2]
-  valid = False
-  if(fileOtherPerm == "N"):
-    if(currUserPerm == ownerPerm):
-      if(fileGroupPerm == "RW"):
-        if(cmd == "R"):
-          valid = True
-        if(cmd == "W"):
-          valid = True
-      if(fileGroupPerm == "R"):
-        if(cmd == "R"):
-          valid = True
-        else:
-          valid = False
+  if(currUser == owner):
+    if(cmd in fileOwnerPerm):
+      valid = True
+  elif(fileOtherPerm == "N"):
+    if(currUserGroup == ownerGroup):
+      if(cmd in fileGroupPerm):
+        valid = True
   else:
-    if(fileOtherPerm == "RW"):
-      if(cmd == "R"):
+      if(cmd in "RW"):
         valid = True
-      if(cmd == "W"):
-        valid = True
-    if(fileOtherPerm == "R"):
-      if(cmd == "R"):
-        valid = True
-      else:
-        valid = False
   return valid
 
 def grabFilePerm(filepath):
   passpath = vars.realpath + "/rootdir/etc/filePerm"
   file = open(passpath,"r+")
   filePermision = ""
+  owner = ""
   with open(passpath) as fp:
         mylist = fp.read().splitlines()
         for line in mylist:
           splitLine = line.split(" ")
           if(filepath == splitLine[0]):
             filePermision = splitLine[1]
+            owner = splitLine[2]
   file.close()
-  return filePermision
+  return owner,filePermision
 
-def getUserPerm(User):
+def getGroup(User):
   print(User)
-  passpath = vars.realpath + "/rootdir/etc/permissions"
+  passpath = vars.realpath + "/rootdir/etc/groups"
   currUserPerm = ""
   file = open(passpath,"r+")
   with open(passpath) as fp:
@@ -363,18 +362,6 @@ def getUserPerm(User):
   file.close()
   return currUserPerm
 
-def grabOwnerofFile(filepath):
-  passpath = vars.realpath + "/rootdir/etc/filePerm"
-  file = open(passpath,"r+")
-  owner = ""
-  with open(passpath) as fp:
-        mylist = fp.read().splitlines()
-        for line in mylist:
-          splitLine = line.split(" ")
-          if(filepath == splitLine[0]):
-            owner = splitLine[2]
-  file.close()
-  return owner
 
 #TO FIX when prompt to login make sure that the input is a 1 or 2 
 
