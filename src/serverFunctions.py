@@ -20,7 +20,7 @@ def parseCommand(cmd, server, acceptor):
     if cmd == "ls":
       response = server_ls(server.crypto, splitCmd[1])
     elif cmd == "cd":
-      response = server_cd(splitCmd[1])
+      response = server_cd(server.crypto, splitCmd[1])
     elif cmd == "mv" or cmd == "move":
       param = splitCmd[1].split()
       response = server_mv(param[0], param[1])
@@ -45,6 +45,8 @@ def encryptpath(crypto, path):
   splitpath = path.split("/")
   encrypted = []
   for dir in splitpath:
+    if dir == '':
+      continue
     if dir != '..' and dir != '.':
       dir = crypto.aesencrypt(vars.aeskey, dir)
     encrypted.append(dir)
@@ -76,8 +78,9 @@ def server_ls(crypto, path):
 
   return '%s' % ' '.join(map(str, decrypted))
 
-def server_cd(directory):
-  #TODO encryption
+def server_cd(crypto, directory):
+  directory = encryptpath(crypto, directory)
+
   resulting = os.path.abspath(directory)
 
   result = checkInjection(resulting)
@@ -119,6 +122,7 @@ def server_mv(source, dest):
     return "ACK"
   else:
     return "you do not have permission"
+
 def server_cat(filename, crypto):
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
@@ -167,7 +171,7 @@ def server_pwd():
 def server_logout(server, acceptor):
   server.sockets.remove(acceptor)
   vars.loggedin = False
-  server_cd(vars.realpath + "/" + ROOT_DIR)
+  os.chdir(vars.realpath + "/" + ROOT_DIR)
   vars.user = None
   return "LOGOUT"
 
@@ -211,7 +215,7 @@ def init():
     with open(etcdir + "/filePerm", 'w'): pass
 
 
-  server_cd(ROOT_DIR)
+  os.chdir(ROOT_DIR)
 
 def server_login(userInfo):
   vars.loggedin = verify(userInfo)
