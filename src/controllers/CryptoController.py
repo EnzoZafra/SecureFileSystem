@@ -68,3 +68,28 @@ class CryptoController:
 
   def _unpad(self, s):
     return s[:-ord(s[len(s)-1:])]
+
+
+  def encryptpath(self, key, path):
+    splitpath = path.split("/")
+    encrypted = []
+    for dir in splitpath:
+      if dir == '':
+        continue
+      if dir != '..' and dir != '.':
+        dir = self.aesencrypt(key, dir)
+      encrypted.append(dir)
+
+    return "/".join(encrypted)
+
+  def decryptpath(self, key, path):
+    splitpath = path.split("/")
+    decrypted = []
+    for dir in splitpath:
+      if dir == '':
+        continue
+      if dir != '..' and dir != '.':
+        dir = self.aesdecrypt(key, dir)
+      decrypted.append(dir)
+
+    return "/".join(decrypted)

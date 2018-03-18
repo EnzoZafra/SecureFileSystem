@@ -101,10 +101,10 @@ class SocketController:
     f.close()
 
   def serverAcceptFile(self, socket, keypair, filepath, aeskey):
-    # encryptfilepath = self.crypto.aesencrypt(aeskey, filename)
-    with open(filepath, 'wb') as f:
+    encryptfilepath = self.crypto.encryptpath(aeskey, filepath)
+    with open(encryptfilepath, 'wb') as f:
       data = self.receive(socket, keypair)
       encryptdata = self.crypto.aesencrypt(aeskey, data)
       f.write(encryptdata)
     f.close()
-    return filepath
+    return encryptfilepath

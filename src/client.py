@@ -44,6 +44,10 @@ class Client:
       verified = self.scontroller.receive(self.sock, self.keypair)
       if verified == "REG_FAIL":
         print("Username already taken")
+        return False
+    else:
+      return False
+
 
   def exchangeKey(self, server):
     # send my public
@@ -89,9 +93,9 @@ class Client:
                 serverResponse = self.scontroller.receive(self.sock, self.keypair)
                 subprocess.Popen("vi " + filepath, shell=True).wait()
 
-                #TODO: send file back and then delete from client
                 self.scontroller.send(self.sock, self.serverpub, "acceptfile|" + filename)
                 self.scontroller.sendFile(self.sock, self.serverpub, filepath)
+                #TODO: delete tmp cache file
 
               elif (tmp[0] == "READY_EDIT"):
                 realpath = os.path.dirname(os.path.realpath(__file__))
@@ -99,9 +103,9 @@ class Client:
                 cachepath = realpath + "/tmpcache/" + filename
                 subprocess.Popen("vi " + cachepath, shell=True).wait()
 
-                #TODO: send file back and then delete from client
                 self.scontroller.send(self.sock, self.serverpub, "acceptfile|" + filename)
                 self.scontroller.sendFile(self.sock, self.serverpub, cachepath)
+                #TODO: delete tmpcache file
 
               elif (tmp[0] == "LOGOUT"):
                 signedIn = False
