@@ -23,6 +23,11 @@ class Client:
 
   def signIn(self):
     userInput = raw_input("what would you like to do? [1]: signin [2]: register : ")
+
+    if (userInput == "quit"):
+      self.sock.close()
+      exit()
+
     username = raw_input("Please input a username: ")
     password = raw_input("Please input a password: ")
 
@@ -98,6 +103,7 @@ class Client:
                 self.scontroller.send(self.sock, self.serverpub, "acceptfile|" + filename)
                 self.scontroller.sendFile(self.sock, self.serverpub, filepath)
                 os.remove(filepath)
+                print('')
 
               elif (tmp[0] == "READY_EDIT"):
                 realpath = os.path.dirname(os.path.realpath(__file__))
@@ -108,6 +114,7 @@ class Client:
                 self.scontroller.send(self.sock, self.serverpub, "acceptfile|" + filename)
                 self.scontroller.sendFile(self.sock, self.serverpub, cachepath)
                 os.remove(cachepath)
+                print('')
 
               elif (tmp[0] == "LOGOUT"):
                 signedIn = False

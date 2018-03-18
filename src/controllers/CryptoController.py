@@ -45,7 +45,10 @@ class CryptoController:
     return (self.iv + cipher.encrypt(plaintext)).encode('hex')
 
   def aesdecrypt(self, key, ciphertext):
-    ciphertext = ciphertext.decode('hex')
+    try:
+      ciphertext = ciphertext.decode('hex')
+    except TypeError:
+      return "error: this file has been tampered with"
     self.iv = ciphertext[:AES.block_size]
     cipher = AES.new(key, AES.MODE_CBC, self.iv)
     return self._unpad(cipher.decrypt(ciphertext[AES.block_size:])).decode('utf-8')
@@ -89,7 +92,12 @@ class CryptoController:
       if dir == '':
         continue
       if dir != '..' and dir != '.':
-        dir = self.aesdecrypt(key, dir)
+        try:
+          int(dir, 16)
+          dir = self.aesdecrypt(key, dir)
+        except ValueError:
+          print("found tampered files")
+          dir = dir + "*"
       decrypted.append(dir)
 
     return "/".join(decrypted)

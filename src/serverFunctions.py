@@ -56,7 +56,7 @@ def server_ls(crypto, path):
 
   resulting = os.path.abspath(path)
   result = checkInjection(resulting)
-  if result is True:
+  if result is True or not os.path.isdir(path):
     return "specified path does not exist"
 
   list = os.listdir(path)
@@ -67,7 +67,11 @@ def server_ls(crypto, path):
   for i in list:
     if i[0] == '.' or i == 'etc':
       continue
-    dir = crypto.aesdecrypt(vars.aeskey, i)
+    try:
+      int(i, 16)
+      dir = crypto.aesdecrypt(vars.aeskey, i)
+    except ValueError:
+      dir = i + "*"
     decrypted.append(dir)
 
   return '%s' % ' '.join(map(str, decrypted))
@@ -153,9 +157,9 @@ def server_rm(crypto, filename):
 
 
 def server_cat(filename, crypto):
+  filename = crypto.aesencrypt(vars.aeskey, filename)
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
-  filename = crypto.aesencrypt(vars.aeskey, filename)
   checkexist = os.path.isfile(filename)
   if result is True or checkexist is not True:
     return "specified file does not exist"
@@ -170,12 +174,11 @@ def server_cat(filename, crypto):
       return "you do not have permission"
 
 def server_mkdir(directory, crypto):
+  directory = crypto.encryptpath(vars.aeskey, directory)
   resulting = os.path.abspath(directory)
   result = checkInjection(resulting)
   if result is True:
     return "specified path does not exist"
-
-  directory = crypto.encryptpath(vars.aeskey, directory)
 
   basedir,filepath = getFilePath(directory)
   doesUserHavePerm = checkUserandFilePerm(basedir, "W", vars.user)
@@ -427,10 +430,8 @@ def grabFilePerm(filepath):
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
-      print(line)
       splitLine = line.split(" ")
       if(filepath == splitLine[0]):
-        print("the file perm is : " + splitLine[1])
         filePermision = splitLine[1]
         owner = splitLine[2]
   return owner,filePermision
