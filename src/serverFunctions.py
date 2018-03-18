@@ -36,7 +36,11 @@ def parseCommand(cmd, server, acceptor):
     elif cmd == "cat":
       response = server_cat(splitCmd[1], server.crypto)
     elif cmd == "open" or cmd == "vim" or cmd == "edit":
+<<<<<<< HEAD
       response = server_open(splitCmd[1], server.scontroller, acceptor,server.crypto)
+=======
+      response = server_open(splitCmd[1], server.scontroller, acceptor, server.crypto)
+>>>>>>> 85d91ac7998e8f5a6e0e6bab70a97f11679734e1
     elif cmd == "logout":
       response = server_logout(server, acceptor)
     elif cmd == "chmod":
@@ -85,7 +89,6 @@ def server_cd(crypto, directory):
   return "ACK"
 
 def server_mv(source, dest, crypto):
-  #TODO fix moving directories and filenames (rename) then update checksum
   source = crypto.encryptpath(vars.aeskey, source)
   dest = crypto.encryptpath(vars.aeskey,dest)
 
@@ -96,7 +99,7 @@ def server_mv(source, dest, crypto):
     return "a file with the given name already exists"
 
   isValidSource = checkUserandFilePerm(filepath, "W", vars.user)
-  isValidDest = checkUserandFilePerm(filepath_dest, "W", vars.user)
+  isValidDest = checkUserandFilePerm(basepath_dest, "W", vars.user)
   if isValidDest and isValidSource == True:
     if source[0] == '/':
       sourcepath = vars.realpath + "/rootdir" + source
@@ -108,7 +111,6 @@ def server_mv(source, dest, crypto):
     else:
       destpath = os.getcwd() + "/" + dest
 
-
     resulting = os.path.abspath(sourcepath)
     result = checkInjection(resulting)
     if result is True:
@@ -118,6 +120,12 @@ def server_mv(source, dest, crypto):
     result = checkInjection(resulting)
     if result is True:
       return "specified destination does not exist"
+
+    removefilePerm(sourcepath)
+    updateChecksum(basepath, basepath[1:])
+
+    filePerm(destpath)
+    updateChecksum(basepath_dest, basepath_dest[1:])
 
     shutil.move(sourcepath, destpath)
     return "ACK"
@@ -194,7 +202,6 @@ def server_pwd(crypto):
 def server_logout(server, acceptor):
   if acceptor in server.sockets:
     server.sockets.remove(acceptor)
-    print(server.sockets)
   vars.loggedin = False
   os.chdir(vars.realpath + "/" + ROOT_DIR)
   vars.user = None
@@ -203,9 +210,11 @@ def server_logout(server, acceptor):
 def server_open(filename, scontroller, acceptor, crypto):
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
-  if result is True or os.path.isdir(filename):
+  encryptedfilename = crypto.encryptpath(vars.aeskey, filename)
+  if result is True or os.path.isdir(encryptedfilename):
     return "specified path does not exist"
 
+<<<<<<< HEAD
   encryptedfilename = crypto.encryptpath(vars.aeskey, filename)
   if not os.path.exists(encryptedfilename):
     basedir,filepath = getFilePath(encryptedfilename)
@@ -216,6 +225,11 @@ def server_open(filename, scontroller, acceptor, crypto):
       scontroller.send(acceptor, vars.pubkeys[acceptor], response)
     else:
       return "you do not have permission"
+=======
+  if not os.path.exists(encryptedfilename):
+    response = "READY_EDIT|" + filename
+    scontroller.send(acceptor, vars.pubkeys[acceptor], response)
+>>>>>>> 85d91ac7998e8f5a6e0e6bab70a97f11679734e1
   else:
     basedir,filepath = getFilePath(encryptedfilename)
     doesUserHavePerm = checkUserandFilePerm(filepath,"W",vars.user)
