@@ -5,6 +5,7 @@ import socket
 import os
 import sys
 import vars
+import shutil
 from serverFunctions import parseCommand, init
 from controllers.SocketController import *
 
@@ -31,6 +32,26 @@ class Server:
     for socket in self.sockets:
         socket.close()
     self.server.close()
+
+  def changegroup(self, username, group):
+    filepath = vars.realpath + "/rootdir/etc/groups"
+    copy = filepath + "copy"
+    shutil.copyfile(filepath, copy)
+
+    with open(copy) as oldfile, open(filepath, 'w') as newfile:
+      mylist = oldfile.read().splitlines()
+      for line in mylist:
+        splitLine = line.split(" ")
+        userentry = splitLine[0]
+        oldchecksum = splitLine[1]
+        if not userentry == username:
+          newfile.write(line)
+          newfile.write("\n")
+        else:
+          newfile.write(username + " " + group)
+    newfile.close()
+    oldfile.close()
+    os.remove(copy)
 
   def exchangeKey(self, client):
     # send my public
@@ -59,12 +80,16 @@ class Server:
           print("connected from: ", address)
           inputs.append(client)
           self.sockets.append(client)
-          print(self.sockets)
           self.exchangeKey(client)
+
         elif s == sys.stdin:
           # handle standard input
-          junk = sys.stdin.readline()
-          running = 0
+          input = sys.stdin.readline()
+          shellinput = input.split(" ")
+          if shellinput[0] == 'chgroup' or shellinput[0] == 'changegroup':
+            self.changegroup(self.crypto.aesencrypt(vars.aeskey, shellinput[1]), shellinput[2])
+          if shellinput[0] == 'exit' or shellinput[0] == 'logout':
+            running = 0
 
       # event from sockets
         else:

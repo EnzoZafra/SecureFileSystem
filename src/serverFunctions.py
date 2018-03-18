@@ -198,7 +198,6 @@ def server_pwd(crypto):
 def server_logout(server, acceptor):
   if acceptor in server.sockets:
     server.sockets.remove(acceptor)
-    print(server.sockets)
   vars.loggedin = False
   os.chdir(vars.realpath + "/" + ROOT_DIR)
   vars.user = None
@@ -207,10 +206,10 @@ def server_logout(server, acceptor):
 def server_open(filename, scontroller, acceptor, crypto):
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
-  if result is True or os.path.isdir(filename):
+  encryptedfilename = crypto.encryptpath(vars.aeskey, filename)
+  if result is True or os.path.isdir(encryptedfilename):
     return "specified path does not exist"
 
-  encryptedfilename = crypto.encryptpath(vars.aeskey, filename)
   if not os.path.exists(encryptedfilename):
     response = "READY_EDIT|" + filename
     scontroller.send(acceptor, vars.pubkeys[acceptor], response)
