@@ -213,7 +213,6 @@ def server_open(filename, scontroller, acceptor, crypto):
   encryptedfilename = crypto.encryptpath(vars.aeskey, filename)
   if not os.path.exists(encryptedfilename):
     basedir,filepath = getFilePath(encryptedfilename)
-    print("the filepath recieved is: " + filepath)
     doesUserHavePerm = checkUserandFilePerm(basedir,"W",vars.user)
     if(doesUserHavePerm == True):
       response = "READY_EDIT|" + filename
@@ -261,11 +260,11 @@ def init(crypto):
 
   if not os.path.exists(etcdir + "/filePerm"):
     with open(etcdir + "/filePerm", 'w'): pass
-  
+
   if not os.path.isdir(rootdir):
     encryptedRoot_dir =  crypto.encryptpath(vars.aeskey,rootdir)
     createBaseUserPerm(encryptedRoot_dir,"server")
-  
+
   if not os.path.exists(etcdir + "/checksum"):
     with open(etcdir + "/checksum", 'w'): pass
 
@@ -434,10 +433,8 @@ def grabFilePerm(filepath):
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
-      print(line)
       splitLine = line.split(" ")
       if(filepath == splitLine[0]):
-        print("the file perm is : " + splitLine[1])
         filePermision = splitLine[1]
         owner = splitLine[2]
   return owner,filePermision
