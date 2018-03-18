@@ -2,6 +2,7 @@
 import vars
 import re
 import os
+import fileinput
 import shutil
 
 from checksumdir import dirhash
@@ -40,9 +41,8 @@ def parseCommand(cmd, server, acceptor):
       response = server_logout(server, acceptor)
     elif cmd == "chmod":
       #TODO add params
-      print(splitCmd)
       param = splitCmd[1].split()
-      response = server_chmod(param[0],param[1])
+      response = server_chmod(param[0],param[1],server.crypto)
     elif cmd == "acceptfile":
       response = server_acceptfile(splitCmd[1], server.scontroller, acceptor)
   return response
@@ -221,15 +221,14 @@ def server_open(filename, scontroller, acceptor):
   return "ACK"
 
 
-def server_chmod(source,permission):
+def server_chmod(source,permission,crypto):
   #TODO
-  print("To be implemented")
-  print(source)
-  print(permission)
-  isValid = checkValidPermission(permission)
-  print(isValid)
+  source = crypto.encryptpath(vars.aeskey, source)
+  newFilePerm,isValid = checkValidPermission(permission)
   if(isValid == True):
-    print("the permissions were valid")
+    basepath,filepath = getFilePath(source)
+    owner, myFilePerm = grabFilePerm(filepath)
+    replaceFilePerm(filepath,newFilePerm)
   else:
     return "Incorrect permissions were inputed"
   return "ACK"
@@ -445,6 +444,7 @@ def createBaseUserPerm(User):
 def checkValidPermission(permission):
   splitPerm = permission.split(",")
   valid = 0
+  newFilePerm = ""
   if(len(splitPerm) == 3):
     firstPerm = splitPerm[0].split("=")
     secondPerm = splitPerm[1].split("=")
@@ -452,16 +452,31 @@ def checkValidPermission(permission):
     if firstPerm[0] == "o" or firstPerm[0] == "O":
       if firstPerm[1] in "RWN":
         valid = valid + 1
+        newFilePerm = firstPerm[1] +","
     if secondPerm[0] == "g" or secondPerm[0] == "G":
       if secondPerm[1] in "RWN":
         valid = valid + 1
+        newFilePerm = newFilePerm + secondPerm[1] +","
     if thirdPerm[0] == "o" or thirdPerm[0] == "O":
       if thirdPerm[1] in "RWN":
         valid = valid + 1
+        newFilePerm = newFilePerm + thirdPerm[1]
     if valid == 3:
-      return True
+      return newFilePerm,True
   else:
-    return False
+    return newFilePerm,False
+
+def replaceFilePerm(filepath,newPerm):
+  passpath = vars.realpath + "/rootdir/etc/filePerm"
+  owner, myFilePerm = grabFilePerm(filepath)
+  oldLine = filepath+" "+myFilePerm+" "+owner
+  newLine = filepath+" "+newPerm + " "+owner
+  with open(passpath, 'r') as file:
+    filedata = file.read()
+  filedata = filedata.replace(oldLine,newLine)
+  with open(passpath,'w') as file:
+    file.write(filedata)
+  file.close()
 
 def updateChecksum(basedir, username):
   basedir = vars.realpath + "/rootdir" + basedir
@@ -501,5 +516,3 @@ def checkintegrity(username):
           return False
         else:
           return True
-
-
