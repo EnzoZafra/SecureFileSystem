@@ -58,6 +58,10 @@ pip install -r requirements.txt
 ```
 
 ### Deploying
+change directory into the src folder
+```
+ch src/
+```
 deploy the server on a machine
 ```
 python server.py [portnumber]
