@@ -5,8 +5,20 @@ The machine encrypts user's data and is only provided to the internal users of t
 uses the following cryptography tools:
 
 1. AES Encryption for encrypting files on the server
+    * The files are encrypted by calculating a key using the server's passphrase on login
+    * Every time the client requests a file, filenames or directory names the server decrypts the data
+    before passing it on to the RSA encryptor for communication
+    * When the server receives data to save, the server encrypts it with its key before its stored
 2. RSA assymetric encryption when communicating between the client and server
+	* All data transfer between the server and the client is encrypted.
+	* Keys are generated when the Client registers and the public key is shared on login
+	* Data outgoing is always encrypted with the receiver's public key
+	* Data incoming is decrypted with the receiver's private key
+	
 3. SHA-2 for hashing passwords and creating certificates
+	* The client's password is hashed before it's sent in the socket for verification. The server then checks the hash if it matches the username and password that is stored on registry.
+	* When the user successfully logs in, the server computes the checksum of its files and directories. If the checksum does not match, it sends a warning to the user.
+	* Whenever an internal user modifies, creates or deletes a file, the checksum of the files are recalculated and stored to be verified later
 
 ## Getting Started
 
