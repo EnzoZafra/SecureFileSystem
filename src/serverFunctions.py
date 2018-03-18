@@ -505,6 +505,7 @@ def updateChecksum(basedir, username):
   oldfile.close()
   os.remove(copy)
 
+# TODO, when external user creates a dir thats plaintext, it breaks!
 def checkintegrity(username):
   newchecksum = dirhash('.', 'sha256')
   cspath = vars.realpath + "/rootdir/etc/checksum"
