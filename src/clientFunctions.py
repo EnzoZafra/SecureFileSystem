@@ -37,8 +37,9 @@ def parseCommand(userInput):
     toSend = client_ls(splitUserInput[1])
   elif (cmd == "chmod"):
     #TODO add chmod params
-    params = "lol test"
-    toSend = client_chmod(params)
+    source = splitUserInput[1]
+    perm = splitUserInput[2]
+    toSend = client_chmod(source,perm)
   elif (cmd == "login"):
     toSend = client_login()
   elif (cmd == "reg"):
@@ -81,8 +82,8 @@ def client_pwd():
   stringToSend = "pwd|"
   return stringToSend
 
-def client_chmod(params):
-  stringToSend = "chmod|" + params
+def client_chmod(source,perm):
+  stringToSend = "chmod|" + source + " " + perm
   return stringToSend
 
 def error_code(errorValue):

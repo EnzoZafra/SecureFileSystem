@@ -36,7 +36,9 @@ def parseCommand(cmd, server, acceptor):
       response = server_logout(server, acceptor)
     elif cmd == "chmod":
       #TODO add params
-      response = server_chmod()
+      print(splitCmd)
+      param = splitCmd[1].split()
+      response = server_chmod(param[0],param[1])
     elif cmd == "acceptfile":
       response = server_acceptfile(splitCmd[1], server.scontroller, acceptor)
   return response
@@ -181,9 +183,13 @@ def server_open(filename, scontroller, acceptor):
   return "ACK"
 
 
-def server_chmod():
+def server_chmod(source,permission):
   #TODO
   print("To be implemented")
+  print(source)
+  print(permission)
+  isValid = checkValidPermission(permission)
+  print(isValid)
   return "ACK"
 
 def init():
@@ -385,6 +391,33 @@ def createBaseUserPerm(User):
   fileperm = "/"+ User + " " + owner + "," + group +","+other +" " + User
   file.write(fileperm + "\n")
   file.close
+
+def checkValidPermission(permission):
+  print("inside checkValidPermission")
+  print(permission)
+  splitPerm = permission.split(",")
+  valid = 0
+  if(len(splitPerm) == 3):
+    print("inside len(splitPerm)")
+    firstPerm = splitPerm[0]
+    secondPerm = splitPerm[1]
+    thirdPerm = splitPerm[2]
+    if firstPerm[0] == "o" or firstPerm[0] == "O":
+      if firstPerm[1] in "RWN":
+        valid = valid + 1
+        print(valid)
+    if secondPerm[0] == "g" or secondPerm[0] == "G":
+      if secondPerm[1] in "RWN":
+        valid = valid + 1
+        print(valid)
+    if thirdPerm[0] == "o" or thirdPerm[0] == "O":
+      if thirdPerm[1] in "RWN":
+        valid = valid + 1
+        print(valid)
+    if valid == 3:
+      return True
+  else:
+    return False
 
 #TO FIX when prompt to login make sure that the input is a 1 or 2
 
