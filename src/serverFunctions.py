@@ -23,7 +23,7 @@ def parseCommand(cmd, server, acceptor):
       response = server_cd(server.crypto, splitCmd[1])
     elif cmd == "mv" or cmd == "move":
       param = splitCmd[1].split()
-      response = server_mv(param[0], param[1])
+      response = server_mv(param[0], param[1], server.crypto)
     elif cmd == "pwd":
       response = server_pwd(server.crypto)
     elif cmd == "mkdir":
@@ -80,12 +80,19 @@ def server_cd(crypto, directory):
   os.chdir(directory)
   return "ACK"
 
-def server_mv(source, dest):
+def server_mv(source, dest, crypto):
   #TODO encryption
-  basepath,filepath = getFilePath(source)
-  basepath_dest,filepath_dest = getFilePath(dest)
-  isValidSource = checkUserandFilePerm(filepath,"W",vars.user)
-  isValidDest = checkUserandFilePerm(filepath_dest,"W",vars.user)
+  source = crypto.encryptpath(vars.aeskey, source)
+  dest = crypto.encryptpath(vars.aeskey,dest)
+
+  basepath, filepath = getFilePath(source)
+  basepath_dest, filepath_dest = getFilePath(dest)
+
+  if os.path.exists(filepath_dest):
+    return "a file with the given name already exists"
+
+  isValidSource = checkUserandFilePerm(filepath, "W", vars.user)
+  isValidDest = checkUserandFilePerm(filepath_dest, "W", vars.user)
   if isValidDest and isValidSource == True:
     if source[0] == '/':
       sourcepath = vars.realpath + "/rootdir" + source
@@ -165,7 +172,7 @@ def server_logout(server, acceptor):
 def server_open(filename, scontroller, acceptor):
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
-  if result is True:
+  if result is True or os.path.isdir(filename):
     return "specified path does not exist"
 
   if not os.path.exists(filename):
@@ -310,22 +317,11 @@ def filePerm(fileName):
   file.close
 
 def getFilePath(fileName):
-
   test = "(" + vars.realpath + "/rootdir" + ")(.*)"
-  fileName = os.getcwd() + "/" + fileName
+  # fileName = os.getcwd() + "/" + fileName
+  fileName = os.path.abspath(fileName)
   match = re.search(test, fileName)
 
-  # path = os.getcwd()
-  # splitPath = path.split("/")
-  # lengthSplitPath = len(splitPath)
-  # rootpath = "/"
-  # rootpathFound = False
-  # for i in range(0,lengthSplitPath):
-  #   if(splitPath[i] == "rootdir"):
-  #     rootpathFound  = True
-  #     continue
-  #   if(rootpathFound == True):
-  #     rootpath =  rootpath + splitPath[i] + "/"
   newpath = match.group(2)
   basepath = "/" + newpath.split('/')[1]
   return basepath, newpath
