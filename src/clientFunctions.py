@@ -44,6 +44,8 @@ def parseCommand(userInput):
     toSend = client_login()
   elif (cmd == "reg"):
     toSend = client_register()
+  elif (cmd == "rm"):
+    toSend = client_rm(splitUserInput[1])
   else:
     return
 
@@ -80,6 +82,10 @@ def client_open(filename):
 
 def client_pwd():
   stringToSend = "pwd|"
+  return stringToSend
+
+def client_rm(filename):
+  stringToSend = "rm|" + filename
   return stringToSend
 
 def client_chmod(source,perm):

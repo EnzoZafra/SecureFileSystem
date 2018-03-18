@@ -21,6 +21,8 @@ def parseCommand(cmd, server, acceptor):
       response = server_ls(server.crypto, splitCmd[1])
     elif cmd == "cd":
       response = server_cd(server.crypto, splitCmd[1])
+    elif cmd == "rm":
+      resposne = server_rm(server.crypto, splitCmd[1])
     elif cmd == "mv" or cmd == "move":
       param = splitCmd[1].split()
       response = server_mv(param[0], param[1], server.crypto)
@@ -119,6 +121,29 @@ def server_mv(source, dest, crypto):
     return "ACK"
   else:
     return "you do not have permission"
+
+def server_rm(crypto, filename):
+  filename = crypto.encryptpath(vars.aeskey, filename)
+  resulting = os.path.abspath(filename)
+  result = checkInjection(resulting)
+  if result is True:
+    return "specified path does not exist"
+
+  basedir, filepath = getFilePath(filename)
+  doesUserHavePerm = checkUserandFilePerm(filepath, "W", vars.user)
+  if doesUserHavePerm == True:
+    if(os.path.exists(filename)):
+      if os.path.isfile(filename):
+        os.remove(filename)
+      if os.path.isdir(filename):
+        shutil.rmtree(filename)
+      removefilePerm(filename)
+      return "ACK"
+    else:
+      return "file does not exist"
+  else:
+    return "you do not have permission"
+
 
 def server_cat(filename, crypto):
   resulting = os.path.abspath(filename)
@@ -316,11 +341,27 @@ def filePerm(fileName):
   file.write(fileperm + "\n")
   file.close
 
+def removefilePerm(fileName):
+  passpath = vars.realpath + "/rootdir/etc/filePerm"
+  copy = passpath + "copy"
+  shutil.copyfile(passpath, copy)
+
+  basedir, filepath = getFilePath(fileName)
+  with open(copy) as oldfile, open(passpath, 'w') as newfile:
+    mylist = oldfile.read().splitlines()
+    for line in mylist:
+      splitLine = line.split(" ")[0]
+      if not splitLine.startswith(filepath):
+        newfile.write(line)
+        newfile.write("\n")
+  newfile.close()
+  oldfile.close()
+  os.remove(copy)
+
 def getFilePath(fileName):
-  test = "(" + vars.realpath + "/rootdir" + ")(.*)"
-  # fileName = os.getcwd() + "/" + fileName
+  pattern = "(" + vars.realpath + "/rootdir" + ")(.*)"
   fileName = os.path.abspath(fileName)
-  match = re.search(test, fileName)
+  match = re.search(pattern, fileName)
 
   newpath = match.group(2)
   basepath = "/" + newpath.split('/')[1]
@@ -351,7 +392,6 @@ def checkUserandFilePerm(filepath, cmd, currUser):
 def grabFilePerm(filepath):
   # print("filepath:" + filepath)
   passpath = vars.realpath + "/rootdir/etc/filePerm"
-  file = open(passpath,"r+")
   filePermision = ""
   owner = ""
   with open(passpath) as fp:
@@ -362,20 +402,17 @@ def grabFilePerm(filepath):
       if(filepath == splitLine[0]):
         filePermision = splitLine[1]
         owner = splitLine[2]
-  file.close()
   return owner,filePermision
 
 def getGroup(User):
   passpath = vars.realpath + "/rootdir/etc/groups"
   currUserPerm = ""
-  file = open(passpath,"r+")
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
       splitLine = line.split(" ")
       if(splitLine[0] == User ):
         currUserPerm = splitLine[1]
-  file.close()
   return currUserPerm
 
 def createBaseUserPerm(User):
