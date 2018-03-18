@@ -36,7 +36,11 @@ def parseCommand(cmd, server, acceptor):
     elif cmd == "cat":
       response = server_cat(splitCmd[1], server.crypto)
     elif cmd == "open" or cmd == "vim" or cmd == "edit":
+<<<<<<< HEAD
+      response = server_open(splitCmd[1], server.scontroller, acceptor,server.crypto)
+=======
       response = server_open(splitCmd[1], server.scontroller, acceptor, server.crypto)
+>>>>>>> 85d91ac7998e8f5a6e0e6bab70a97f11679734e1
     elif cmd == "logout":
       response = server_logout(server, acceptor)
     elif cmd == "chmod":
@@ -210,20 +214,37 @@ def server_open(filename, scontroller, acceptor, crypto):
   if result is True or os.path.isdir(encryptedfilename):
     return "specified path does not exist"
 
+<<<<<<< HEAD
+  encryptedfilename = crypto.encryptpath(vars.aeskey, filename)
+  if not os.path.exists(encryptedfilename):
+    basedir,filepath = getFilePath(encryptedfilename)
+    print("the filepath recieved is: " + filepath)
+    doesUserHavePerm = checkUserandFilePerm(basedir,"W",vars.user)
+    if(doesUserHavePerm == True):
+      response = "READY_EDIT|" + filename
+      scontroller.send(acceptor, vars.pubkeys[acceptor], response)
+    else:
+      return "you do not have permission"
+=======
   if not os.path.exists(encryptedfilename):
     response = "READY_EDIT|" + filename
     scontroller.send(acceptor, vars.pubkeys[acceptor], response)
+>>>>>>> 85d91ac7998e8f5a6e0e6bab70a97f11679734e1
   else:
-    response = "READY_SEND"
-    response = "READY_SEND|" + filename
-    scontroller.send(acceptor, vars.pubkeys[acceptor], response)
+    basedir,filepath = getFilePath(encryptedfilename)
+    doesUserHavePerm = checkUserandFilePerm(filepath,"W",vars.user)
+    if(doesUserHavePerm == True):
+      response = "READY_SEND"
+      response = "READY_SEND|" + filename
+      scontroller.send(acceptor, vars.pubkeys[acceptor], response)
 
-    # wait for client to get ready to accept file
-    resp = scontroller.receive(acceptor, vars.keypair)
-    if (resp == "CLIENT_READY"):
-      scontroller.serverSendFile(acceptor, vars.pubkeys[acceptor], filename, vars.aeskey)
+      # wait for client to get ready to accept file
+      resp = scontroller.receive(acceptor, vars.keypair)
+      if (resp == "CLIENT_READY"):
+        scontroller.serverSendFile(acceptor, vars.pubkeys[acceptor], filename, vars.aeskey)
+    else:
+      return "you do not have permission"
   return "ACK"
-
 
 def server_chmod(source,permission,crypto):
   #TODO
@@ -418,8 +439,10 @@ def grabFilePerm(filepath):
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
+      print(line)
       splitLine = line.split(" ")
       if(filepath == splitLine[0]):
+        print("the file perm is : " + splitLine[1])
         filePermision = splitLine[1]
         owner = splitLine[2]
   return owner,filePermision
