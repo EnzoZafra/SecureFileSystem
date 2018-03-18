@@ -22,6 +22,8 @@ def parseCommand(cmd, server, acceptor):
       response = server_ls(server.crypto, splitCmd[1])
     elif cmd == "cd":
       response = server_cd(server.crypto, splitCmd[1])
+    elif cmd == "rm":
+      resposne = server_rm(server.crypto, splitCmd[1])
     elif cmd == "mv" or cmd == "move":
       param = splitCmd[1].split()
       response = server_mv(param[0], param[1], server.crypto)
@@ -81,7 +83,6 @@ def server_cd(crypto, directory):
   return "ACK"
 
 def server_mv(source, dest, crypto):
-  #TODO encryption
   source = crypto.encryptpath(vars.aeskey, source)
   dest = crypto.encryptpath(vars.aeskey,dest)
 
@@ -119,6 +120,29 @@ def server_mv(source, dest, crypto):
     return "ACK"
   else:
     return "you do not have permission"
+
+def server_rm(crypto, filename):
+  filename = crypto.encryptpath(vars.aeskey, filename)
+  resulting = os.path.abspath(filename)
+  result = checkInjection(resulting)
+  if result is True:
+    return "specified path does not exist"
+
+  basedir, filepath = getFilePath(filename)
+  doesUserHavePerm = checkUserandFilePerm(filepath, "W", vars.user)
+  if doesUserHavePerm == True:
+    if(os.path.exists(filename)):
+      if os.path.isfile(filename):
+        os.remove(filename)
+      if os.path.isdir(filename):
+        shutil.rmtree(filename)
+      removefilePerm(filename)
+      return "ACK"
+    else:
+      return "file does not exist"
+  else:
+    return "you do not have permission"
+
 
 def server_cat(filename, crypto):
   resulting = os.path.abspath(filename)
@@ -238,7 +262,6 @@ def server_register(userInfo, crypto):
 
 def server_acceptfile(filename, scontroller, socket):
   filename = scontroller.serverAcceptFile(socket, vars.keypair, filename, vars.aeskey)
-  # print(filename)
   filePerm(filename)
   return "ACK"
 
@@ -319,11 +342,27 @@ def filePerm(fileName):
   file.write(fileperm + "\n")
   file.close
 
+def removefilePerm(fileName):
+  passpath = vars.realpath + "/rootdir/etc/filePerm"
+  copy = passpath + "copy"
+  shutil.copyfile(passpath, copy)
+
+  basedir, filepath = getFilePath(fileName)
+  with open(copy) as oldfile, open(passpath, 'w') as newfile:
+    mylist = oldfile.read().splitlines()
+    for line in mylist:
+      splitLine = line.split(" ")[0]
+      if not splitLine.startswith(filepath):
+        newfile.write(line)
+        newfile.write("\n")
+  newfile.close()
+  oldfile.close()
+  os.remove(copy)
+
 def getFilePath(fileName):
-  test = "(" + vars.realpath + "/rootdir" + ")(.*)"
-  # fileName = os.getcwd() + "/" + fileName
+  pattern = "(" + vars.realpath + "/rootdir" + ")(.*)"
   fileName = os.path.abspath(fileName)
-  match = re.search(test, fileName)
+  match = re.search(pattern, fileName)
 
   newpath = match.group(2)
   basepath = "/" + newpath.split('/')[1]
@@ -334,7 +373,6 @@ def checkUserandFilePerm(filepath, cmd, currUser):
   currUserGroup = getGroup(currUser)
   ownerGroup = getGroup(owner)
   valid = False
-  # print(myFilePerm)
   myFilePermSplit = myFilePerm.split(",")
   fileOwnerPerm = myFilePermSplit[0]
   fileGroupPerm = myFilePermSplit[1]
@@ -352,33 +390,27 @@ def checkUserandFilePerm(filepath, cmd, currUser):
   return valid
 
 def grabFilePerm(filepath):
-  # print("filepath:" + filepath)
   passpath = vars.realpath + "/rootdir/etc/filePerm"
-  file = open(passpath,"r+")
   filePermision = ""
   owner = ""
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
-      # print(line)
       splitLine = line.split(" ")
       if(filepath == splitLine[0]):
         filePermision = splitLine[1]
         owner = splitLine[2]
-  file.close()
   return owner,filePermision
 
 def getGroup(User):
   passpath = vars.realpath + "/rootdir/etc/groups"
   currUserPerm = ""
-  file = open(passpath,"r+")
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
       splitLine = line.split(" ")
       if(splitLine[0] == User ):
         currUserPerm = splitLine[1]
-  file.close()
   return currUserPerm
 
 def createBaseUserPerm(User):
@@ -406,14 +438,21 @@ def checkValidPermission(permission):
     if secondPerm[0] == "g" or secondPerm[0] == "G":
       if secondPerm[1] in "RWN":
         valid = valid + 1
+<<<<<<< HEAD
         newFilePerm = newFilePerm + secondPerm[1] +","
     if thirdPerm[0] == "o" or thirdPerm[0] == "O":
       if thirdPerm[1] in "RWN":
         valid = valid + 1
         newFilePerm = newFilePerm + thirdPerm[1]
+=======
+    if thirdPerm[0] == "o" or thirdPerm[0] == "O":
+      if thirdPerm[1] in "RWN":
+        valid = valid + 1
+>>>>>>> 08f5fe0a6440418ed96bce96a56de1e53eedf777
     if valid == 3:
       return newFilePerm,True
   else:
+<<<<<<< HEAD
     return newFilePerm,False
 
 def replaceFilePerm(filepath,newPerm):
@@ -431,3 +470,6 @@ def replaceFilePerm(filepath,newPerm):
 
 
 
+=======
+    return False
+>>>>>>> 08f5fe0a6440418ed96bce96a56de1e53eedf777

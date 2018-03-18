@@ -36,7 +36,6 @@ def parseCommand(userInput):
   elif (cmd == "ls"):
     toSend = client_ls(splitUserInput[1])
   elif (cmd == "chmod"):
-    #TODO add chmod params
     source = splitUserInput[1]
     perm = splitUserInput[2]
     toSend = client_chmod(source,perm)
@@ -44,6 +43,8 @@ def parseCommand(userInput):
     toSend = client_login()
   elif (cmd == "reg"):
     toSend = client_register()
+  elif (cmd == "rm"):
+    toSend = client_rm(splitUserInput[1])
   else:
     return
 
@@ -82,14 +83,13 @@ def client_pwd():
   stringToSend = "pwd|"
   return stringToSend
 
+def client_rm(filename):
+  stringToSend = "rm|" + filename
+  return stringToSend
+
 def client_chmod(source,perm):
   stringToSend = "chmod|" + source + " " + perm
   return stringToSend
-
-def error_code(errorValue):
-  if (errorValue == 1):
-    #TODO
-    print("some error")
 
 def init():
   clientpath = "tmpcache/"
