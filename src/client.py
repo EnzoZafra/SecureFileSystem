@@ -95,7 +95,7 @@ class Client:
 
                 self.scontroller.send(self.sock, self.serverpub, "acceptfile|" + filename)
                 self.scontroller.sendFile(self.sock, self.serverpub, filepath)
-                #TODO: delete tmp cache file
+                os.remove(filepath)
 
               elif (tmp[0] == "READY_EDIT"):
                 realpath = os.path.dirname(os.path.realpath(__file__))
@@ -105,7 +105,7 @@ class Client:
 
                 self.scontroller.send(self.sock, self.serverpub, "acceptfile|" + filename)
                 self.scontroller.sendFile(self.sock, self.serverpub, cachepath)
-                #TODO: delete tmpcache file
+                os.remove(filepath)
 
               elif (tmp[0] == "LOGOUT"):
                 signedIn = False

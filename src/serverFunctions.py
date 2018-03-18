@@ -83,7 +83,6 @@ def server_cd(crypto, directory):
   return "ACK"
 
 def server_mv(source, dest, crypto):
-  #TODO encryption
   source = crypto.encryptpath(vars.aeskey, source)
   dest = crypto.encryptpath(vars.aeskey,dest)
 
@@ -264,7 +263,6 @@ def server_register(userInfo, crypto):
 
 def server_acceptfile(filename, scontroller, socket):
   filename = scontroller.serverAcceptFile(socket, vars.keypair, filename, vars.aeskey)
-  # print(filename)
   filePerm(filename)
   return "ACK"
 
@@ -376,7 +374,6 @@ def checkUserandFilePerm(filepath, cmd, currUser):
   currUserGroup = getGroup(currUser)
   ownerGroup = getGroup(owner)
   valid = False
-  # print(myFilePerm)
   myFilePermSplit = myFilePerm.split(",")
   fileOwnerPerm = myFilePermSplit[0]
   fileGroupPerm = myFilePermSplit[1]
@@ -394,14 +391,12 @@ def checkUserandFilePerm(filepath, cmd, currUser):
   return valid
 
 def grabFilePerm(filepath):
-  # print("filepath:" + filepath)
   passpath = vars.realpath + "/rootdir/etc/filePerm"
   filePermision = ""
   owner = ""
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
-      # print(line)
       splitLine = line.split(" ")
       if(filepath == splitLine[0]):
         filePermision = splitLine[1]
@@ -442,17 +437,10 @@ def checkValidPermission(permission):
     if secondPerm[0] == "g" or secondPerm[0] == "G":
       if secondPerm[1] in "RWN":
         valid = valid + 1
-        print(valid)
     if thirdPerm[0] == "o" or thirdPerm[0] == "O":
       if thirdPerm[1] in "RWN":
         valid = valid + 1
-        print(valid)
     if valid == 3:
       return True
   else:
     return False
-
-#TO FIX when prompt to login make sure that the input is a 1 or 2
-
-
-
