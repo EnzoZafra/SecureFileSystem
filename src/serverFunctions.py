@@ -36,7 +36,7 @@ def parseCommand(cmd, server, acceptor):
     elif cmd == "cat":
       response = server_cat(splitCmd[1], server.crypto)
     elif cmd == "open" or cmd == "vim" or cmd == "edit":
-      response = server_open(splitCmd[1], server.scontroller, acceptor, server.crypto)
+      response = server_open(splitCmd[1], server.scontroller, acceptor,server.crypto)
     elif cmd == "logout":
       response = server_logout(server, acceptor)
     elif cmd == "chmod":
@@ -56,7 +56,7 @@ def server_ls(crypto, path):
 
   resulting = os.path.abspath(path)
   result = checkInjection(resulting)
-  if result is True or not os.path.isdir(path):
+  if result is True:
     return "specified path does not exist"
 
   list = os.listdir(path)
@@ -67,11 +67,7 @@ def server_ls(crypto, path):
   for i in list:
     if i[0] == '.' or i == 'etc':
       continue
-    try:
-      int(i, 16)
-      dir = crypto.aesdecrypt(vars.aeskey, i)
-    except ValueError:
-      dir = i + "*"
+    dir = crypto.aesdecrypt(vars.aeskey, i)
     decrypted.append(dir)
 
   return '%s' % ' '.join(map(str, decrypted))
@@ -157,9 +153,9 @@ def server_rm(crypto, filename):
 
 
 def server_cat(filename, crypto):
-  filename = crypto.aesencrypt(vars.aeskey, filename)
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
+  filename = crypto.aesencrypt(vars.aeskey, filename)
   checkexist = os.path.isfile(filename)
   if result is True or checkexist is not True:
     return "specified file does not exist"
@@ -174,11 +170,12 @@ def server_cat(filename, crypto):
       return "you do not have permission"
 
 def server_mkdir(directory, crypto):
-  directory = crypto.encryptpath(vars.aeskey, directory)
   resulting = os.path.abspath(directory)
   result = checkInjection(resulting)
   if result is True:
     return "specified path does not exist"
+
+  directory = crypto.encryptpath(vars.aeskey, directory)
 
   basedir,filepath = getFilePath(directory)
   doesUserHavePerm = checkUserandFilePerm(basedir, "W", vars.user)
@@ -216,6 +213,7 @@ def server_open(filename, scontroller, acceptor, crypto):
   encryptedfilename = crypto.encryptpath(vars.aeskey, filename)
   if not os.path.exists(encryptedfilename):
     basedir,filepath = getFilePath(encryptedfilename)
+    print("the filepath recieved is: " + filepath)
     doesUserHavePerm = checkUserandFilePerm(basedir,"W",vars.user)
     if(doesUserHavePerm == True):
       response = "READY_EDIT|" + filename
@@ -239,6 +237,7 @@ def server_open(filename, scontroller, acceptor, crypto):
   return "ACK"
 
 def server_chmod(source,permission,crypto):
+  #TODO
   source = crypto.encryptpath(vars.aeskey, source)
   newFilePerm,isValid = checkValidPermission(permission)
   if(isValid == True):
@@ -249,8 +248,9 @@ def server_chmod(source,permission,crypto):
     return "Incorrect permissions were inputed"
   return "ACK"
 
-def init():
+def init(crypto):
   etcdir = ROOT_DIR + "/etc"
+  rootdir = "/" + ROOT_DIR
   if(not os.path.isdir(etcdir)):
     os.makedirs(etcdir)
   if not os.path.exists(etcdir + "/groups"):
@@ -261,7 +261,11 @@ def init():
 
   if not os.path.exists(etcdir + "/filePerm"):
     with open(etcdir + "/filePerm", 'w'): pass
-
+  
+  if not os.path.isdir(rootdir):
+    encryptedRoot_dir =  crypto.encryptpath(vars.aeskey,rootdir)
+    createBaseUserPerm(encryptedRoot_dir,"server")
+  
   if not os.path.exists(etcdir + "/checksum"):
     with open(etcdir + "/checksum", 'w'): pass
 
@@ -327,7 +331,7 @@ def createUser(userId, crypto):
   file = open(cspath, "a")
   file.write(cryptUser + " " + dirhash(cryptUser, 'sha256') + "\n")
   file.close()
-  createBaseUserPerm(cryptUser)
+  createBaseUserPerm(cryptUser,"user")
 
 def userNameTaken(userID):
   passpath = vars.realpath + "/rootdir/etc/passwd"
@@ -430,8 +434,10 @@ def grabFilePerm(filepath):
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
+      print(line)
       splitLine = line.split(" ")
       if(filepath == splitLine[0]):
+        print("the file perm is : " + splitLine[1])
         filePermision = splitLine[1]
         owner = splitLine[2]
   return owner,filePermision
@@ -447,13 +453,16 @@ def getGroup(User):
         currUserPerm = splitLine[1]
   return currUserPerm
 
-def createBaseUserPerm(User):
+def createBaseUserPerm(dir,user):
   passpath = vars.realpath + "/rootdir/etc/filePerm"
   file = open(passpath, "a")
   owner = "RW"
   group = "N"
   other = "N"
-  fileperm = "/"+ User + " " + owner + "," + group +","+other +" " + User
+  if(user == "server"):
+    fileperm = dir +" " + owner +"," + group +","+other +" " + user
+  else:
+    fileperm = "/"+ dir + " " + owner + "," + group +","+other +" " + dir
   file.write(fileperm + "\n")
   file.close
 
@@ -517,7 +526,6 @@ def updateChecksum(basedir, username):
   oldfile.close()
   os.remove(copy)
 
-# TODO, when external user creates a dir thats plaintext, it breaks!
 def checkintegrity(username):
   newchecksum = dirhash('.', 'sha256')
   cspath = vars.realpath + "/rootdir/etc/checksum"

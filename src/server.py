@@ -20,7 +20,7 @@ class Server:
     vars.init()
     vars.keypair = self.crypto.genAsymKeys()
     vars.aeskey = self.crypto.genAesKey(pw)
-    init()
+    init(self.crypto)
     # Trap keyboard interrupts
     signal.signal(signal.SIGINT, self.sighandler)
 
