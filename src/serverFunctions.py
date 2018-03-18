@@ -197,6 +197,10 @@ def server_chmod(source,permission):
   print(permission)
   isValid = checkValidPermission(permission)
   print(isValid)
+  if(isValid == True):
+    print("the permissions were valid")
+  else:
+    return "Incorrect permissions were inputed"
   return "ACK"
 
 def init():
@@ -389,19 +393,15 @@ def createBaseUserPerm(User):
   file.close
 
 def checkValidPermission(permission):
-  print("inside checkValidPermission")
-  print(permission)
   splitPerm = permission.split(",")
   valid = 0
   if(len(splitPerm) == 3):
-    print("inside len(splitPerm)")
-    firstPerm = splitPerm[0]
-    secondPerm = splitPerm[1]
-    thirdPerm = splitPerm[2]
+    firstPerm = splitPerm[0].split("=")
+    secondPerm = splitPerm[1].split("=")
+    thirdPerm = splitPerm[2].split("=")
     if firstPerm[0] == "o" or firstPerm[0] == "O":
       if firstPerm[1] in "RWN":
         valid = valid + 1
-        print(valid)
     if secondPerm[0] == "g" or secondPerm[0] == "G":
       if secondPerm[1] in "RWN":
         valid = valid + 1
