@@ -200,21 +200,26 @@ def server_logout(server, acceptor):
   vars.user = None
   return "LOGOUT"
 
-def server_open(filename, scontroller, acceptor,crypto):
+def server_open(filename, scontroller, acceptor, crypto):
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
-  print("the filename is : "+ filename)
   if result is True or os.path.isdir(filename):
     return "specified path does not exist"
 
-  if not os.path.exists(filename):
-    filename = crypto.aesencrypt(vars.aeskey, filename)
-    basedir,filepath = getFilePath(filename)
-    doesUserHavePerm = checkUserandFilePerm(filepath, "W", vars.user)
+  encryptedfilename = crypto.encryptpath(vars.aeskey, filename)
+  if not os.path.exists(encryptedfilename):
+    basedir,filepath = getFilePath(encryptedfilename)
+    print("the filepath recieved is: " + filepath)
+    doesUserHavePerm = checkUserandFilePerm(basedir,"W",vars.user)
     if(doesUserHavePerm == True):
       response = "READY_EDIT|" + filename
       scontroller.send(acceptor, vars.pubkeys[acceptor], response)
-  
+    else:
+      return "you do not have permission"
+  else:
+    basedir,filepath = getFilePath(encryptedfilename)
+    doesUserHavePerm = checkUserandFilePerm(filepath,"W",vars.user)
+    if(doesUserHavePerm == True):
       response = "READY_SEND"
       response = "READY_SEND|" + filename
       scontroller.send(acceptor, vars.pubkeys[acceptor], response)
@@ -223,9 +228,9 @@ def server_open(filename, scontroller, acceptor,crypto):
       resp = scontroller.receive(acceptor, vars.keypair)
       if (resp == "CLIENT_READY"):
         scontroller.serverSendFile(acceptor, vars.pubkeys[acceptor], filename, vars.aeskey)
-      return "ACK"
     else:
       return "you do not have permission"
+  return "ACK"
 
 def server_chmod(source,permission,crypto):
   #TODO
@@ -420,8 +425,10 @@ def grabFilePerm(filepath):
   with open(passpath) as fp:
     mylist = fp.read().splitlines()
     for line in mylist:
+      print(line)
       splitLine = line.split(" ")
       if(filepath == splitLine[0]):
+        print("the file perm is : " + splitLine[1])
         filePermision = splitLine[1]
         owner = splitLine[2]
   return owner,filePermision
@@ -492,8 +499,6 @@ def updateChecksum(basedir, username):
   copy = cspath + "copy"
   shutil.copyfile(cspath, copy)
 
-<<<<<<< HEAD
-=======
   with open(copy) as oldfile, open(cspath, 'w') as newfile:
     mylist = oldfile.read().splitlines()
     for line in mylist:
@@ -524,4 +529,3 @@ def checkintegrity(username):
           return False
         else:
           return True
->>>>>>> b13427afced742f567d9ad9522a985c88926a15a
