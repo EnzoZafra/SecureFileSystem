@@ -5,6 +5,8 @@ import os
 import fileinput
 import shutil
 
+from checksumdir import dirhash
+
 ROOT_DIR = "rootdir"
 
 def parseCommand(cmd, server, acceptor):
@@ -83,6 +85,7 @@ def server_cd(crypto, directory):
   return "ACK"
 
 def server_mv(source, dest, crypto):
+  #TODO fix moving directories and filenames (rename) then update checksum
   source = crypto.encryptpath(vars.aeskey, source)
   dest = crypto.encryptpath(vars.aeskey,dest)
 
@@ -136,6 +139,7 @@ def server_rm(crypto, filename):
         os.remove(filename)
       if os.path.isdir(filename):
         shutil.rmtree(filename)
+      updateChecksum(basedir, basedir[1:])
       removefilePerm(filename)
       return "ACK"
     else:
@@ -174,6 +178,7 @@ def server_mkdir(directory, crypto):
   if doesUserHavePerm == True:
     if(not os.path.isdir(directory)):
       os.makedirs(directory)
+      updateChecksum(basedir, basedir[1:])
       filePerm(directory)
       return "ACK"
     else:
@@ -187,7 +192,9 @@ def server_pwd(crypto):
 
 
 def server_logout(server, acceptor):
-  server.sockets.remove(acceptor)
+  if acceptor in server.sockets:
+    server.sockets.remove(acceptor)
+    print(server.sockets)
   vars.loggedin = False
   os.chdir(vars.realpath + "/" + ROOT_DIR)
   vars.user = None
@@ -245,6 +252,8 @@ def init():
   if not os.path.exists(etcdir + "/filePerm"):
     with open(etcdir + "/filePerm", 'w'): pass
 
+  if not os.path.exists(etcdir + "/checksum"):
+    with open(etcdir + "/checksum", 'w'): pass
 
   os.chdir(ROOT_DIR)
 
@@ -253,7 +262,9 @@ def server_login(userInfo, crypto):
   if vars.loggedin:
     encrypted = crypto.aesencrypt(vars.aeskey, userInfo.split()[0])
     os.chdir(encrypted)
-    vars.user = crypto.aesencrypt(vars.aeskey, userInfo.split()[0])
+    vars.user = encrypted
+    if(not checkintegrity(encrypted)):
+      return "INTEGRITY_FAIL"
     return "LOGIN_SUCCESS"
   else:
     return "LOGIN_FAIL"
@@ -268,7 +279,8 @@ def server_register(userInfo, crypto):
 
 def server_acceptfile(filename, scontroller, socket):
   filename = scontroller.serverAcceptFile(socket, vars.keypair, filename, vars.aeskey)
-  filePerm(filename)
+  basedir = filePerm(filename)
+  updateChecksum(basedir, basedir[1:])
   return "ACK"
 
 def verify(userId):
@@ -293,13 +305,18 @@ def createUser(userId, crypto):
   splitUserID = userId.split()
   passpath = vars.realpath + "/rootdir/etc/passwd"
   file = open(passpath,"a")
-  file.write("\n" + userId)
+  file.write(userId + "\n")
   file.close()
   permission = "default"
 
   cryptUser = crypto.aesencrypt(vars.aeskey, splitUserID[0])
   setUserPerm(cryptUser, permission)
   os.makedirs(cryptUser)
+
+  cspath = vars.realpath + "/rootdir/etc/checksum"
+  file = open(cspath, "a")
+  file.write(cryptUser + " " + dirhash(cryptUser, 'sha256') + "\n")
+  file.close()
   createBaseUserPerm(cryptUser)
 
 def userNameTaken(userID):
@@ -347,6 +364,7 @@ def filePerm(fileName):
   fileperm = filepath + " " + default + " " + vars.user
   file.write(fileperm + "\n")
   file.close
+  return basedir
 
 def removefilePerm(fileName):
   passpath = vars.realpath + "/rootdir/etc/filePerm"
@@ -465,7 +483,45 @@ def replaceFilePerm(filepath,newPerm):
   with open(passpath,'w') as file:
     file.write(filedata)
   file.close()
-#TO FIX when prompt to login make sure that the input is a 1 or 2
 
+def updateChecksum(basedir, username):
+  basedir = vars.realpath + "/rootdir" + basedir
+  newchecksum = dirhash(basedir, 'sha256')
 
+  cspath = vars.realpath + "/rootdir/etc/checksum"
+  copy = cspath + "copy"
+  shutil.copyfile(cspath, copy)
 
+<<<<<<< HEAD
+=======
+  with open(copy) as oldfile, open(cspath, 'w') as newfile:
+    mylist = oldfile.read().splitlines()
+    for line in mylist:
+      splitLine = line.split(" ")
+      userentry = splitLine[0]
+      oldchecksum = splitLine[1]
+      if not userentry == username:
+        newfile.write(line)
+      else:
+        newfile.write(username + " " + newchecksum)
+      newfile.write("\n")
+  newfile.close()
+  oldfile.close()
+  os.remove(copy)
+
+def checkintegrity(username):
+  newchecksum = dirhash('.', 'sha256')
+  cspath = vars.realpath + "/rootdir/etc/checksum"
+  with open(cspath) as fp:
+    mylist = fp.read().splitlines()
+    for line in mylist:
+      splitLine = line.split(" ")
+      userentry = splitLine[0]
+      oldchecksum = splitLine[1]
+
+      if(username == userentry):
+        if(oldchecksum != newchecksum):
+          return False
+        else:
+          return True
+>>>>>>> b13427afced742f567d9ad9522a985c88926a15a

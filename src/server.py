@@ -59,6 +59,7 @@ class Server:
           print("connected from: ", address)
           inputs.append(client)
           self.sockets.append(client)
+          print(self.sockets)
           self.exchangeKey(client)
         elif s == sys.stdin:
           # handle standard input

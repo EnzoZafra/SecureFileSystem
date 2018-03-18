@@ -32,9 +32,11 @@ class Client:
       request = "login"
       self.scontroller.send(self.sock, self.serverpub, request + "|" + check_id)
       verified = self.scontroller.receive(self.sock, self.keypair)
-      if(verified == "LOGIN_SUCCESS"):
+      if(verified == "LOGIN_SUCCESS" or verified == "INTEGRITY_FAIL"):
         self.username = username
         self.prompt = '[' + '@'.join((self.username, socket.gethostname().split('.')[0])) + ']> '
+        if verified == "INTEGRITY_FAIL":
+          print("warning: files have been compromised and tampered with!")
         return True
       else:
         print("username or password incorrect")
@@ -105,7 +107,7 @@ class Client:
 
                 self.scontroller.send(self.sock, self.serverpub, "acceptfile|" + filename)
                 self.scontroller.sendFile(self.sock, self.serverpub, cachepath)
-                os.remove(filepath)
+                os.remove(cachepath)
 
               elif (tmp[0] == "LOGOUT"):
                 signedIn = False
