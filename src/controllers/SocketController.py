@@ -94,6 +94,7 @@ class SocketController:
     return filepath
 
   def serverSendFile(self, socket, pubkey, filename, aeskey):
+    filename = self.crypto.encryptpath(aeskey, filename)
     f = open(filename, 'rb')
     buf = f.read()
     decryptbuf = self.crypto.aesdecrypt(aeskey, buf)

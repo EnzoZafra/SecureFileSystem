@@ -36,7 +36,7 @@ def parseCommand(cmd, server, acceptor):
     elif cmd == "cat":
       response = server_cat(splitCmd[1], server.crypto)
     elif cmd == "open" or cmd == "vim" or cmd == "edit":
-      response = server_open(splitCmd[1], server.scontroller, acceptor)
+      response = server_open(splitCmd[1], server.scontroller, acceptor, server.crypto)
     elif cmd == "logout":
       response = server_logout(server, acceptor)
     elif cmd == "chmod":
@@ -85,7 +85,6 @@ def server_cd(crypto, directory):
   return "ACK"
 
 def server_mv(source, dest, crypto):
-  #TODO fix moving directories and filenames (rename) then update checksum
   source = crypto.encryptpath(vars.aeskey, source)
   dest = crypto.encryptpath(vars.aeskey,dest)
 
@@ -96,7 +95,7 @@ def server_mv(source, dest, crypto):
     return "a file with the given name already exists"
 
   isValidSource = checkUserandFilePerm(filepath, "W", vars.user)
-  isValidDest = checkUserandFilePerm(filepath_dest, "W", vars.user)
+  isValidDest = checkUserandFilePerm(basepath_dest, "W", vars.user)
   if isValidDest and isValidSource == True:
     if source[0] == '/':
       sourcepath = vars.realpath + "/rootdir" + source
@@ -108,7 +107,6 @@ def server_mv(source, dest, crypto):
     else:
       destpath = os.getcwd() + "/" + dest
 
-
     resulting = os.path.abspath(sourcepath)
     result = checkInjection(resulting)
     if result is True:
@@ -118,6 +116,12 @@ def server_mv(source, dest, crypto):
     result = checkInjection(resulting)
     if result is True:
       return "specified destination does not exist"
+
+    removefilePerm(sourcepath)
+    updateChecksum(basepath, basepath[1:])
+
+    filePerm(destpath)
+    updateChecksum(basepath_dest, basepath_dest[1:])
 
     shutil.move(sourcepath, destpath)
     return "ACK"
@@ -200,13 +204,14 @@ def server_logout(server, acceptor):
   vars.user = None
   return "LOGOUT"
 
-def server_open(filename, scontroller, acceptor):
+def server_open(filename, scontroller, acceptor, crypto):
   resulting = os.path.abspath(filename)
   result = checkInjection(resulting)
   if result is True or os.path.isdir(filename):
     return "specified path does not exist"
 
-  if not os.path.exists(filename):
+  encryptedfilename = crypto.encryptpath(vars.aeskey, filename)
+  if not os.path.exists(encryptedfilename):
     response = "READY_EDIT|" + filename
     scontroller.send(acceptor, vars.pubkeys[acceptor], response)
   else:

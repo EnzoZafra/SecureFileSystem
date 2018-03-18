@@ -93,7 +93,7 @@ class Client:
                 filepath = "tmpcache/" + filename
                 self.scontroller.acceptFile(self.sock, self.keypair, filepath)
                 serverResponse = self.scontroller.receive(self.sock, self.keypair)
-                subprocess.Popen("vi " + filepath, shell=True).wait()
+                subprocess.Popen("vim " + filepath, shell=True).wait()
 
                 self.scontroller.send(self.sock, self.serverpub, "acceptfile|" + filename)
                 self.scontroller.sendFile(self.sock, self.serverpub, filepath)
@@ -103,7 +103,7 @@ class Client:
                 realpath = os.path.dirname(os.path.realpath(__file__))
                 filename = tmp[1]
                 cachepath = realpath + "/tmpcache/" + filename
-                subprocess.Popen("vi " + cachepath, shell=True).wait()
+                subprocess.Popen("vim " + cachepath, shell=True).wait()
 
                 self.scontroller.send(self.sock, self.serverpub, "acceptfile|" + filename)
                 self.scontroller.sendFile(self.sock, self.serverpub, cachepath)
