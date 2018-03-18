@@ -4,3 +4,4 @@ venv/
 *.pyc
 */rootdir/
 */tmpcache/
+projdetails/
