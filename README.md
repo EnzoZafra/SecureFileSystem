@@ -20,6 +20,11 @@ uses the following cryptography tools:
 	* When the user successfully logs in, the server computes the checksum of its files and directories. If the checksum does not match, it sends a warning to the user.
 	* Whenever an internal user modifies, creates or deletes a file, the checksum of the files are recalculated and stored to be verified later
 
+## Authors
+
+* **Lorenzo Zafra** - [enzozafra](https://github.com/enzozafra)
+* **Alexander Nguyen** - [ahnguyen03](https://github.com/ahnguyen03)
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
@@ -154,7 +159,3 @@ chgroup [username] [groupname]
 * [PyCrypto](https://pypi.python.org/pypi/pycrypto) - Encryption library
 * [ChecksumDir](https://pypi.python.org/pypi/checksumdir) - Checksum Integrity Checker
 
-## Authors
-
-* **Lorenzo Zafra** - [enzozafra](https://github.com/enzozafra)
-* **Alexander Nguyen** - [ahnguyen03](https://github.com/ahnguyen03)
